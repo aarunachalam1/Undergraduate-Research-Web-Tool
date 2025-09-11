@@ -11,9 +11,9 @@ def gaffke_endpoint():
         try:
             sample = request.form["sample"]
             sample = [float(x) for x in sample.split(",")]
-            alpha = float(request.form.get("alpha", 0.05))
+            alpha = float(request.form.get("alpha"))
             iterations = int(request.form["iterations"])
-            side = request.form.get("side", "lower")
+            side = request.form.get("side")
 
             bound = gaffke_CI(
                 sample, alpha=alpha, B=iterations, side=side, bounds=(0, 1)
