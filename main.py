@@ -19,7 +19,7 @@ def gaffke_endpoint():
                 sample, alpha=alpha, B=iterations, side=side, bounds=(0, 1)
             )
 
-            result = f"{side.capitalize()} Gaffke bound (1 - {alpha}): {bound:.4f}"
+            result = f"{side.capitalize()} Gaffke bound ({(1 - alpha) * 100}% Confidence): {bound:.4f}"
 
         except Exception as e:
             result = f"Error: {str(e)}"
