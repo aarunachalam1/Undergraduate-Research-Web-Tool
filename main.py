@@ -23,7 +23,8 @@ def gaffke_endpoint():
 
         except Exception as e:
             result = f"Error: {str(e)}"
-        
+            
+    result = request.args.get("result")
     return render_template("index.html", result=result)
 
 if __name__ == "__main__":
