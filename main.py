@@ -2,6 +2,7 @@ from flask import Flask, request, render_template
 from gaffke import gaffke_CI
 
 app = Flask(__name__)
+application = app
 
 @app.route("/", methods=["GET", "POST"])
 def gaffke_endpoint():
