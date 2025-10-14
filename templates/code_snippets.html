@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bounds on the Mean</title>
+    <meta name="description"
+        content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
+</head>
+
+<body>
+    <nav class="nav" aria-label="Primary">
+        <div class="container nav-inner">
+            <div class="brand">
+                <div class="logo" aria-hidden="true"></div> Bounds on the Mean
+            </div>
+            <div class="nav-links" role="navigation">
+                <a href="/">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="download" aria-labelledby="download-heading">
+            <h2 id="download-heading">Downloadable Code</h2>
+            <p class="section-note">Organized by setting and language. Items marked <span class="pill">coming
+                    soon</span> are placeholders—swap the links to your repos or archives when ready.</p>
+
+            <div class="panel rows">
+                <div class="row">
+                    <div class="label">General Properties</div>
+                    <div class="group">
+                        <details class="accordion" open>
+                            <summary>Python code
+                                <a class="chip"
+                                    href="https://raw.githubusercontent.com/dd2912/bounds/refs/heads/main/python/gaffke.py"
+                                    download="gaffke.py">Download</a>
+                            </summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Core utilities & helpers</div>
+                                        <div class="meta">Vectorized primitives, input validation, test fixtures</div>
+                                    </div>
+
+                                </div>
+                                <pre class="line-numbers"><code class="language-python">def validate_input(data):
+    if not isinstance(data, list):
+        raise ValueError("Data must be a list")
+    return [float(x) for x in data]</code></pre>
+                        </details>
+
+                        <details class="accordion">
+                            <summary>MATLAB code <a class="chip" href="#">Download</a></summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Core utilities & helpers</div>
+                                        <div class="meta">Vectorized primitives, input validation, test fixtures
+                                            Vectorized primitives, input validation, test fixtures Vectorized
+                                            primitives, input validation, test fixtures</div>
+                                    </div>
+
+                                </div>
+                                <pre class="line-numbers"><code class="language-python">def validate_input(data):
+    if not isinstance(data, list):
+        raise ValueError("Data must be a list")
+    return [float(x) for x in data]</code></pre>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="label">Bounds for Known Support</div>
+                    <div class="group">
+                        <details class="accordion" open>
+                            <summary>Python code</summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Upper bounds — Sample‑mean ordering</div>
+                                        <div class="meta">Given support [a,b], compute tight U(n, x̄)</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Upper bounds — Gaffke ordering</div>
+                                        <div class="meta">Ordering‑based extremal distributions</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Lower bounds — Sample‑mean ordering</div>
+                                        <div class="meta">Symmetric companion to upper bounds</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Lower bounds — Gaffke ordering</div>
+                                        <div class="meta">Dual results under Gaffke</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <details class="accordion">
+                            <summary>MATLAB code</summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Upper bounds — Sample‑mean ordering</div>
+                                        <div class="meta">Function + demo script</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Upper bounds — Gaffke ordering</div>
+                                        <div class="meta">Function + demo script</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Lower bounds — Sample‑mean ordering</div>
+                                        <div class="meta">Function + demo script</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Lower bounds — Gaffke ordering</div>
+                                        <div class="meta">Function + demo script</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Download</a>
+                                        <a class="chip ghost" href="#">Docs</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="label">Bounds for Unknown Support</div>
+                    <div class="group">
+                        <details class="accordion">
+                            <summary>Python code <span class="pill">coming soon</span></summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Moment‑based bounds</div>
+                                        <div class="meta">Use partial moments or quantiles when support is unspecified
+                                        </div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Preview</a>
+                                        <a class="chip ghost" href="#">API</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <details class="accordion">
+                            <summary>MATLAB code <span class="pill">coming soon</span></summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Extremal constructions</div>
+                                        <div class="meta">Tightness via discrete extremizers</div>
+                                    </div>
+                                    <div class="actions">
+                                        <a class="chip" href="#">Preview</a>
+                                        <a class="chip ghost" href="#">Notes</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <div>© <span id="year"></span> Bounds on the Mean • Built with a lightweight, responsive design.</div>
+            <div class="small" style="margin-top:.4rem">Tip: use <span class="kbd">/download</span>, <span
+                    class="kbd">/tools</span>, or <span class="kbd">/publications</span> anchors to deep‑link.</div>
+        </div>
+    </footer>
+</body>
+</html>

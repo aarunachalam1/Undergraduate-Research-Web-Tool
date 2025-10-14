@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bounds on the Mean</title>
+    <meta name="description"
+        content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}" />
+
+    <!-- Prism.js syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
+</head>
+
+<body>
+    <nav class="nav" aria-label="Primary">
+        <div class="container nav-inner">
+            <div class="brand">
+                <div class="logo" aria-hidden="true"></div> Bounds on the Mean
+            </div>
+            <div class="nav-links" role="navigation">
+                <a href="/">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <section id="tools" aria-labelledby="tools-heading">
+            <h2 id="tools-heading">Interactive Tools</h2>
+            <p class="section-note">In‑browser sandboxes for experimenting with constraints and visualizing the tightest
+                mean bounds. Replace placeholders with your hosted apps or notebooks.</p>
+
+            <div class="grid">
+                <article class="card" style="grid-column: span 6">
+                    <h3>Known‑Support Playground</h3>
+                    <p>Set [a,b], sample size n, and sample mean x̄. Compare sample‑mean vs. Gaffke orderings. Plot
+                        upper/lower bounds.</p>
+                    <a class="go" href="#">Open tool →</a>
+                </article>
+                <article class="card" style="grid-column: span 6">
+                    <h3>Unknown‑Support Explorer</h3>
+                    <p>Investigate bounds when only partial moments/quantiles are known. Surface extremal distributions.
+                    </p>
+                    <a class="go" href="{{ url_for('gaffke_endpoint') }}">Open tool →</a>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div>© <span id="year"></span> Bounds on the Mean • Built with a lightweight, responsive design.</div>
+            <div class="small" style="margin-top:.4rem">Tip: use <span class="kbd">/download</span>, <span
+                    class="kbd">/tools</span>, or <span class="kbd">/publications</span> anchors to deep‑link.</div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -14,6 +14,7 @@ def gaffke_CI(x, alpha=0.05, B=100000, side="lower", bounds=(0, 1)):
     Returns:
     - One-sided (1 - alpha) confidence bound on the population mean
     """
+    
     x = np.asarray(x)
     if np.isnan(x).any():
         raise ValueError("Samples have NA/NaN values")
@@ -41,3 +42,13 @@ def gaffke_CI(x, alpha=0.05, B=100000, side="lower", bounds=(0, 1)):
         return ms_alpha
     else:
         raise ValueError("side must be 'upper' or 'lower'")
+    
+
+
+
+if __name__ == "__main__":
+
+    sample = [0, 3, 4,5 ,6]
+
+    for _ in range(20):
+        print(gaffke_CI(sample, alpha=0.05, B=100000, side="lower", bounds=(0, 1)))

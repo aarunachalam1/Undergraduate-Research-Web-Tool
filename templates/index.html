@@ -1,53 +1,236 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Bound Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bounds on the Mean</title>
+    <meta name="description"
+        content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}" />
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
 </head>
+
 <body>
-    <h1>Bound Calculator</h1>
-
-    <div class="main-container">
-        <div class="gaffke">
-            <h1>Gaffke Bound Calculator</h1>
-
-            <form method="POST" autocomplete="off">
-                <div class="form-row">
-                    <label for="sample">Sample (comma-separated):</label>
-                    <input type="text" id="sample" name="sample" required>
-                </div>
-
-                <div class="form-row">
-                    <label for="alpha">Alpha (e.g. 0.05):</label>
-                    <input type="text" id="alpha" name="alpha" required>
-                </div>
-
-                <div class="form-row">
-                    <label for="iterations">Monte Carlo iterations:</label>
-                    <input type="number" id="iterations" name="iterations" required>
-                </div>
-
-                <div class="form-row">
-                    <label for="side">Side:</label>
-                    <select id="side" name="side" required>
-                        <option value="" disabled selected>Select an option</option>
-                        <option value="lower">Lower</option>
-                        <option value="upper">Upper</option>
-                    </select>
-                </div>
-
-                <button type="submit">Calculate</button>
-            </form>
+    <nav class="nav" aria-label="Primary">
+        <div class="container nav-inner">
+            <div class="brand">
+                <div class="logo" aria-hidden="true"></div> Bounds on the Mean
+            </div>
+            <div class="nav-links" role="navigation">
+                <a href="{{ url_for('code_snippets') }}">Downloadable Code</a>
+                <a href="{{ url_for('tools') }}">Interactive Tools</a>
+                <a href="{{ url_for('publications') }}">Related Publications</a>
+            </div>
         </div>
+    </nav>
 
-        <div class="result-container">
-            {% if result %}
-                <div class="result">{{ result }}</div>
-            {% endif %}
+    <header class="hero">
+        <div class="container">
+            <h1>Bounds on the Mean</h1>
+            <p class="sub">Bounding the mean asks: given partial knowledge about a distribution (for example, support
+                limits, moments, or order constraints), how tight can we make guaranteed upper and lower limits for the
+                population mean? This site collects code, interactive demos, and references for deriving and
+                experimenting with such bounds.</p>
+
+            <div class="grid" style="margin-top:2rem">
+                <article class="card">
+                    <div class="badge">Python & MATLAB</div>
+                    <h3>Ready‑to‑use implementations</h3>
+                    <p>Reference implementations for general properties and support‑aware bounds (known or unknown
+                        support). Clean APIs and tested examples.</p>
+                    <a class="go" href="#download">Explore code →</a>
+                </article>
+                <article class="card">
+                    <div class="badge">Playground</div>
+                    <h3>Point‑and‑click exploration</h3>
+                    <p>Tune support and sample statistics, compare sample‑mean ordering vs. Gaffke ordering, and
+                        visualize resulting bounds.</p>
+                    <a class="go" href="#tools">Try tools →</a>
+                </article>
+                <article class="card">
+                    <div class="badge">Citations</div>
+                    <h3>Context & theory</h3>
+                    <p>A curated list of foundational and recent papers on mean bounds, orderings, and extremal
+                        distributions.</p>
+                    <a class="go" href="#publications">See papers →</a>
+                </article>
+            </div>
         </div>
-    </div>
+    </header>
 
+    <main class="container">
+        <section id="download" aria-labelledby="download-heading">
+            <h2 id="download-heading">Downloadable Code</h2>
+            <p class="section-note">This is a small sampling of the available code snippets, please see the dedicated page to view more</p>
+
+            <div class="panel rows">
+                <div class="row">
+                    <div class="label">General Properties</div>
+                    <div class="group">
+                        <details class="accordion" open>
+                            <summary>Python code
+                                <a class="chip"
+                                    href="https://raw.githubusercontent.com/dd2912/bounds/refs/heads/main/python/gaffke.py"
+                                    download="gaffke.py">Download</a>
+                            </summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Core utilities & helpers</div>
+                                        <div class="meta">Vectorized primitives, input validation, test fixtures</div>
+                                    </div>
+
+                                </div>
+                                <pre class="line-numbers"><code class="language-python">def validate_input(data):
+    if not isinstance(data, list):
+        raise ValueError("Data must be a list")
+    return [float(x) for x in data]</code></pre>
+                        </details>
+
+                        <details class="accordion">
+                            <summary>MATLAB code <a class="chip" href="#">Download</a></summary>
+                            <div class="list" style="margin-top:.6rem">
+                                <div class="entry">
+                                    <div>
+                                        <div class="title">Core utilities & helpers</div>
+                                        <div class="meta">Vectorized primitives, input validation, test fixtures </div>
+                                    </div>
+
+                                </div>
+                                <pre class="line-numbers"><code class="language-python">def validate_input(data):
+    if not isinstance(data, list):
+        raise ValueError("Data must be a list")
+    return [float(x) for x in data]</code></pre>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tools" aria-labelledby="tools-heading">
+            <h2 id="tools-heading">Interactive Tools</h2>
+            <p class="section-note">In‑browser sandboxes for experimenting with constraints and visualizing the tightest
+                mean bounds. More tools may arrive in the future and will be available on the dedicated tools page.</p>
+
+            <div class="grid">
+                <article class="card" style="grid-column: span 6">
+                    <h3>Known‑Support Playground</h3>
+                    <p>Set [a,b], sample size n, and sample mean x̄. Compare sample‑mean vs. Gaffke orderings. Plot
+                        upper/lower bounds.</p>
+                    <a class="go" href="#">Open tool →</a>
+                </article>
+                <article class="card" style="grid-column: span 6">
+                    <h3>Unknown‑Support Explorer</h3>
+                    <p>Investigate bounds when only partial moments/quantiles are known. Surface extremal distributions.
+                    </p>
+                    <a class="go" href="{{ url_for('gaffke_endpoint') }}">Open tool →</a>
+                </article>
+            </div>
+        </section>
+
+        <section id="publications" aria-labelledby="pubs-heading">
+            <h2 id="pubs-heading">Related Publications</h2>
+            <p class="section-note">A short list to get started. Replace these with your citations and links.</p>
+
+            <div class="panel">
+                <div class="list publications-list">
+                    <div class="entry pub-card" itemscope itemtype="http://schema.org/ScholarlyArticle">
+                        <div>
+                            <div class="title">A New Confidence Interval for the Mean of a Bounded Random Variable</div>
+                            <div class="authors">Erik Learned-Miller and Philip S. Thomas</div>
+                            <div class="meta abstract">We present a new method for constructing a confidence interval
+                                for the mean of a bounded random variable from samples of the random variable. We
+                                conjecture that the confidence interval has guaranteed coverage, i.e., that it contains
+                                the mean with high probability for all distributions on a bounded interval, for all
+                                samples sizes, and for all confidence levels. This new method provides confidence
+                                intervals that are competitive with those produced using Student's t-statistic, but does
+                                not rely on normality assumptions. In particular, its only requirement is that the
+                                distribution be bounded on a known finite interval. </div>
+                        </div>
+                        <div class="actions">
+                            <a class="chip" href="https://arxiv.org/pdf/1905.06208" target="_blank"
+                                rel="noopener">PDF</a>
+                            <span class="chip ghost">citation</span>
+                        </div>
+                    </div>
+
+                    
+
+                    <div class="entry  pub-card" itemscope itemtype="http://schema.org/ScholarlyArticle">
+                        <div>
+                            <div class="title">On the admissibility of bounds on the mean of discrete, scalar
+                                probability distributions from an iid sample</div>
+                            <div class="authors">Erik Learned-Miller</div>
+                            <div class="meta abstract">We address the problem of producing a lower bound for the mean of
+                                a discrete probability distribution, with known support over a finite set of real
+                                numbers, from an iid sample of that distribution. Up to a constant, this is equivalent
+                                to bounding the mean of a multinomial distribution (with known support) from a sample of
+                                that distribution. Our main contribution is to characterize the complete set of
+                                admissible bound functions for any sample space, and to show that certain previously
+                                published bounds are admissible. We prove that the solution to each one of a set of
+                                simple-to-state optimization problems yields such an admissible bound. Single examples
+                                of such bounds, such as the trinomial bound by Miratrix and Stark [2009] have been
+                                previously published, but without an analysis of admissibility, and without a discussion
+                                of the full set of alternative admissible bounds. In addition to a variety of results
+                                about admissible bounds, we prove the non-existence of optimal bounds for sample spaces
+                                with supports of size greater than 1 and samples sizes greater than 1. </div>
+                        </div>
+                        <div class="actions">
+                            <a class="chip" href="https://arxiv.org/pdf/2502.17223" target="_blank"
+                                rel="noopener">PDF</a>
+                            <span class="chip ghost">citation</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div style="margin-top:1.5rem; text-align:center;">
+                <a class="go" href="{{ url_for('publications') }}">View all publications →</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div>© <span id="year"></span> Bounds on the Mean • Built with a lightweight, responsive design.</div>
+            <div class="small" style="margin-top:.4rem">Tip: use <span class="kbd">/download</span>, <span
+                    class="kbd">/tools</span>, or <span class="kbd">/publications</span> anchors to deep‑link.</div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const yearEl = document.getElementById('year');
+            if (yearEl) {
+                yearEl.textContent = new Date().getFullYear();
+            }
+
+            document.querySelectorAll('a[href^="#"]').forEach(a => {
+                a.addEventListener('click', e => {
+                    const id = a.getAttribute('href').slice(1);
+                    const el = document.getElementById(id);
+                    if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+                });
+            });
+
+            console.group('Smoke tests');
+            console.assert(!!yearEl, 'Footer year element #year exists');
+            ['download', 'tools', 'publications'].forEach(id => {
+                console.assert(!!document.getElementById(id), `Section #${id} exists`);
+            });
+            const navLinks = Array.from(document.querySelectorAll('.nav-links a'));
+            console.assert(navLinks.length >= 3, 'Primary nav has at least 3 links');
+            navLinks.forEach(a => console.assert(a.getAttribute('href').startsWith('#'), 'Nav link uses in‑page anchor'));
+            console.assert(document.querySelectorAll('details.accordion').length >= 1, 'At least one accordion exists');
+            console.groupEnd();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.min.js"></script>
 </body>
+
 </html>
