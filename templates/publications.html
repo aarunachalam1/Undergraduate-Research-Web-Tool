@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bounds on the Mean</title>
+    <meta name="description"
+        content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}" />
+
+    <!-- Prism.js syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
+</head>
+
+<body>
+    <nav class="nav" aria-label="Primary">
+        <div class="container nav-inner">
+            <div class="brand">
+                <div class="logo" aria-hidden="true"></div> Bounds on the Mean
+            </div>
+            <div class="nav-links" role="navigation">
+                <a href="/">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="publications" aria-labelledby="pubs-heading">
+            <h2 id="pubs-heading">Related Publications</h2>
+            <p class="section-note">A short list to get started. Replace these with your citations and links.</p>
+
+            <div class="panel">
+                <div class="list publications-list">
+                    <div class="entry pub-card" itemscope itemtype="http://schema.org/ScholarlyArticle">
+                        <div>
+                            <div class="title">A New Confidence Interval for the Mean of a Bounded Random Variable</div>
+                            <div class="authors">Erik Learned-Miller and Philip S. Thomas</div>
+                            <div class="meta abstract">We present a new method for constructing a confidence interval
+                                for the mean of a bounded random variable from samples of the random variable. We
+                                conjecture that the confidence interval has guaranteed coverage, i.e., that it contains
+                                the mean with high probability for all distributions on a bounded interval, for all
+                                samples sizes, and for all confidence levels. This new method provides confidence
+                                intervals that are competitive with those produced using Student's t-statistic, but does
+                                not rely on normality assumptions. In particular, its only requirement is that the
+                                distribution be bounded on a known finite interval. </div>
+                        </div>
+                        <div class="actions">
+                            <a class="chip" href="https://arxiv.org/pdf/1905.06208" target="_blank"
+                                rel="noopener">PDF</a>
+                            <span class="chip ghost">citation</span>
+                        </div>
+                    </div>
+
+                    <div class="entry  pub-card" itemscope itemtype="http://schema.org/ScholarlyArticle">
+                        <div>
+                            <div class="title">Nonparametric one-sided testing for the mean and related extremum
+                                problems</div>
+                            <div class="authors">Norbert Gaffke</div>
+                            <div class="meta abstract">We consider the nonparametric model of n i.i.d. nonnegative real
+                                random variables with unknown distribution. An interesting parameter of this
+                                distribution is its expectation μ. W. Wang and L. H. Zhao [J. Stat. Plann. Inference
+                                110, No. 1–2, 75–96 (2003; Zbl 1030.62038)] studied the problem of testing the one-sided
+                                hypotheses H 0 :μ≤μ 0 vs. H 1 :μ>μ 0 (with a given μ 0 >0, where w.l.o.g. one may take μ
+                                0 =1). For n=1 there is a UMP nonrandomized level α test. Somewhat surprisingly, for n=2
+                                Wang and Zhao obtained a UMP nonrandomized monotone symmetric level α test. However,
+                                they conjectured that the result will not carry over to larger sample size n≥3.
+                                Unfortunately, their conjecture is true as we will show. Also, we present an alternative
+                                proof of their (positive) result for n=2. Our derivations are based on the study of
+                                related classes of extremum problems on products of probability measures.</div>
+                        </div>
+                        <div class="actions">
+                            <a class="chip"
+                                href="https://www.researchgate.net/publication/266840776_Nonparametric_one-sided_testing_for_the_mean_and_related_extremum_problems">PDF</a>
+                            <span class="chip ghost">citation</span>
+                        </div>
+                    </div>
+
+                    <div class="entry  pub-card" itemscope itemtype="http://schema.org/ScholarlyArticle">
+                        <div>
+                            <div class="title">On the admissibility of bounds on the mean of discrete, scalar
+                                probability distributions from an iid sample</div>
+                            <div class="authors">Erik Learned-Miller</div>
+                            <div class="meta abstract">We address the problem of producing a lower bound for the mean of
+                                a discrete probability distribution, with known support over a finite set of real
+                                numbers, from an iid sample of that distribution. Up to a constant, this is equivalent
+                                to bounding the mean of a multinomial distribution (with known support) from a sample of
+                                that distribution. Our main contribution is to characterize the complete set of
+                                admissible bound functions for any sample space, and to show that certain previously
+                                published bounds are admissible. We prove that the solution to each one of a set of
+                                simple-to-state optimization problems yields such an admissible bound. Single examples
+                                of such bounds, such as the trinomial bound by Miratrix and Stark [2009] have been
+                                previously published, but without an analysis of admissibility, and without a discussion
+                                of the full set of alternative admissible bounds. In addition to a variety of results
+                                about admissible bounds, we prove the non-existence of optimal bounds for sample spaces
+                                with supports of size greater than 1 and samples sizes greater than 1. </div>
+                        </div>
+                        <div class="actions">
+                            <a class="chip" href="https://arxiv.org/pdf/2502.17223" target="_blank"
+                                rel="noopener">PDF</a>
+                            <span class="chip ghost">citation</span>
+                        </div>
+                    </div>
+
+                    <div class="entry  pub-card" itemscope itemtype="http://schema.org/ScholarlyArticle">
+                        <div>
+                            <div class="title">Log-concavity of multinomial likelihood functions under interval
+                                censoring constraints on frequencies or their partial sums</div>
+                            <div class="authors">Bruce Levin and Erik Learned-Miller</div>
+                            <div class="meta abstract">We show that the likelihood function for a multinomial vector
+                                observed under arbitrary interval censoring constraints on the frequencies or their
+                                partial sums is completely log-concave by proving that the constrained sample spaces
+                                comprise M-convex subsets of the discrete simplex.</div>
+                        </div>
+                        <div class="actions">
+                            <a class="chip"
+                                href="https://www.sciencedirect.com/science/article/pii/S0167715224000087/pdfft?md5=1946b0b30735908384d7ef0d75c53efd&pid=1-s2.0-S0167715224000087-main.pdf"
+                                target="_blank" rel="noopener">PDF</a>
+                            <span class="chip ghost">citation</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div style="margin-top:1.5rem; text-align:center;">
+                <a class="go" href="#publications">View all publications →</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div>© <span id="year"></span> Bounds on the Mean • Built with a lightweight, responsive design.</div>
+            <div class="small" style="margin-top:.4rem">Tip: use <span class="kbd">/download</span>, <span
+                    class="kbd">/tools</span>, or <span class="kbd">/publications</span> anchors to deep‑link.</div>
+        </div>
+    </footer>
+</body>
+</html>
