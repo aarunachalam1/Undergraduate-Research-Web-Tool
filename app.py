@@ -12,14 +12,23 @@ def index():
 def gaffke_endpoint():
 
     result = None
+    result = None
+    sample_val = ""
+    confidence_val = 0.95
+    iterations_val = 1000
+    side_val = "lower"
 
     if request.method == "POST":
         try:
-            sample = request.form["sample"]
-            sample = [float(x) for x in sample.split(",")]
-            confidence = float(request.form.get("confidence"))
-            iterations = int(request.form["iterations"])
-            side = request.form.get("side")
+            sample_val = request.form["sample"]
+            confidence_val = request.form.get("confidence")
+            iterations_val = request.form["iterations"]
+            side_val = request.form.get("side")
+
+            sample = [float(x) for x in sample_val.split(",")]
+            confidence = float(confidence_val)
+            iterations = int(iterations_val)
+            side = side_val
 
             bound = gaffke_CI(
                 sample, alpha=1-confidence, B=iterations, side=side, bounds=(0, 1)
@@ -31,7 +40,13 @@ def gaffke_endpoint():
             result = f"Error: {str(e)}"
 
     return render_template(
-        "boundswithsample.html", result=result, css_file="boundswithsample.css")
+        "boundswithsample.html",
+        result=result,
+        css_file="boundswithsample.css",
+        sample_val=sample_val,
+        confidence_val=confidence_val,
+        iterations_val=iterations_val,
+        side_val=side_val)
 
 @app.route("/code_snippets", methods=["GET"])
 def code_snippets():
