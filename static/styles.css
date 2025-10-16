@@ -456,3 +456,93 @@ footer {
     background: #f1f5f9;
     font-size: .82rem
 }
+
+
+
+/* Form Layout */
+.form-grid {
+  display: block;
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+input, select {
+  padding: 0.6rem;
+  border: 1px solid #d0d7de;
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+
+.right-side {
+    margin-left: 2rem;
+}
+
+.right-side #status,
+.right-side .row-span-2 {
+    width: 90%;
+    margin: 0 3% 0 7%;
+}
+
+/* Button */
+.primary-btn {
+  background: #3f71d4;
+  color: white;
+  font-weight: 600;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s;
+  display: block;
+    margin-top: 1.5rem;
+}
+
+.primary-btn:hover {
+  background: #1e54c4;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-weight: 700;
+    letter-spacing: .3px
+}
+.logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: conic-gradient(from 210deg, var(--accent), var(--accent-2));
+    box-shadow: var(--shadow);
+}
+
+/* Result */
+.result-section {
+  margin-top: 2rem;
+  background: #f3f6ff;
+  border-radius: var(--radius);
+  padding: 1rem;
+  border: 1px solid #d8e1ff;
+}
+
+.result {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
