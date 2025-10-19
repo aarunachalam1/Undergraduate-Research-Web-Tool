@@ -20,10 +20,12 @@ def boundswithsample():
     return render_template(
         "boundswithsample.html",
         result=None,
-        css_file="boundswithsample.css",
         sample_val="",
         confidence_val=0.95,
         iterations_val=1000,
+        steps_val=1,
+        iterations_per_step_val=1,
+        min_max_val=0,
         side_val="lower"
     )
 
@@ -45,21 +47,28 @@ def boundswithsample_stream():
         sample_val = request.args.get("sample", "")
         confidence_val = float(request.args.get("confidence", "0.95"))
         iterations_val = int(request.args.get("iterations", "1000"))
+        steps_val = int(request.args.get("steps", "1"))
+        iterations_per_step_val = int(request.args.get("iterations_per_step", "1"))
+        min_max_val = float(request.args.get("min_max", "0"))
+
         side_val = request.args.get("side", "lower").strip().lower()
-        if side_val not in {"lower", "upper"}:
+        if side_val not in ["lower", "upper"]:
             side_val = "lower"
 
         sample = [float(x) for x in sample_val.split(",") if x.strip() != ""]
         if len(sample) == 0:
             raise ValueError("Sample is empty.")
         if any((x < 0) for x in sample):
-            raise ValueError("Sample values must be in [0, 1].")
+            raise ValueError("Sample values must be in [0, inf].")
 
-        alpha = 1.0 - confidence_val
         max_B = max(10, iterations_val)
-        # 10 points from 10 to iterations (clamp if iterations < 10)
-        start_B = 10 if iterations_val >= 10 else iterations_val
-        Bs = np.unique([int(b) for b in np.linspace(start_B, max_B, num=20)])
+
+        start_B = 10 if steps_val >= 1 else iterations_val
+        if steps_val == 1:
+            Bs = [iterations_val]
+        else:
+            Bs = np.unique([int(b) for b in np.linspace(start_B, max_B, num=steps_val)])
+
     except Exception as e:
         msg = str(e)  # capture before defining the generator
 
@@ -69,6 +78,7 @@ def boundswithsample_stream():
 
         return Response(stream_with_context(err_stream()),
                         mimetype="text/event-stream")
+
     @stream_with_context
     def generate():
         # notify client we are starting
@@ -76,9 +86,8 @@ def boundswithsample_stream():
 
         for idx, B in enumerate(Bs, start=1):
             cur_vals = []
-            for _ in range(20):
-                # call your function
-                bound = gaffke_CI(sample, alpha=alpha, B=int(B), side=side_val, bounds=(0, 1))
+            for _ in range(iterations_per_step_val):
+                bound = gaffke_CI(sample, conf=confidence_val, B=int(B), side=side_val, extrema=min_max_val)
                 cur_vals.append(float(bound))
 
             mean_val = float(np.mean(cur_vals))
