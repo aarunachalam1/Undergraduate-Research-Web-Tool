@@ -1,87 +1,370 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Unknown-Support Explorer</title>
+    <meta charset="utf-8">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bounds on the Mean</title>
+    <meta name="description"
+        content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='boundswithsample.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /*body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            margin: 24px;
+        }*/
+
+
+
+        form label {
+            font-weight: 600;
+        }
+
+        form input,
+        form select {
+            padding: 6px 8px;
+        }
+
+        /*.row-span-2 {
+            grid-column: 1 / -1;
+        }*/
+
+        #status {
+            padding: 6px 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            height:  40px;
+        }
+
+        #chart-wrap {
+            margin-top: 24px;
+
+        }
+
+        button {
+            padding: 8px 12px;
+        }
+
+        /* Progress bar */
+        #progress {
+            position: relative;
+            margin-top: 12px;
+            height: 20px;
+            background: #e6e6e6;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: #007bff;
+            transition: width 120ms linear;
+            width: 0%;
+        }
+
+        #progress-text {
+            position: absolute;
+            top: -22px;
+            right: 0;
+            font-size: 0.9rem;
+            color: #333;
+            font-family: monospace;
+        }
+    </style>
 </head>
 
 <body>
-  <nav class="nav" aria-label="Primary">
+
+    <nav class="nav" aria-label="Primary">
         <div class="container nav-inner">
             <div class="brand">
                 <div class="logo" aria-hidden="true"></div> Bounds on the Mean
             </div>
             <div class="nav-links" role="navigation">
-                <a href="/">Home</a>
+                <a href="{{ url_for('code_snippets') }}">Downloadable Code</a>
+                <a href="{{ url_for('tools') }}">Interactive Tools</a>
+                <a href="{{ url_for('publications') }}">Related Publications</a>
             </div>
         </div>
     </nav>
 
-  <header class="hero">
-    <div class="container">
-      <h1>Unknown-Support Explorer</h1>
-      <p class="sub">
-        Compute one-sided bounds on the mean using the Gaffke ordering or another ordering (WIP).  
-        Enter your sample, confidence level, and iteration count below.
-      </p>
-    </div>
-  </header>
+    <main class="container">
+        <h2 id="download-heading">Gaffke Bound</h2>
+        <p class="section-note">Gaffke bound calculator</p>
+        <section class="card calculator">
+            <h2>Input Parameters</h2>
 
-  <main class="container">
-    <section class="card calculator">
-      <h2>Input Parameters</h2>
-      <form method="POST" autocomplete="off" class="form-grid">
-        <div class="form-row">
-          <label for="sample">Sample (comma-separated):</label>
-          <input type="text" id="sample" name="sample" placeholder="e.g. 1.2, 3.4, 5.6" required>
-        </div>
+            <div class="row">
+                <div class="left-side">
+                    <form id="bounds-form" autocomplete="off" class="form-grid">
+                        <div class="form-row">
+                            <label for="sample">Sample (comma-separated):</label>
+                            <input type="text" name="sample" id="sample" value="{{ sample_val }}"
+                                placeholder="e.g. 1.2, 3.4, 5.6" required>
+                        </div>
 
-        <div class="form-row">
-          <label for="confidence">Confidence Level:</label>
-          <input type="number" id="confidence" name="confidence" value="0.95" step="0.01" required>
-        </div>
+                        <div class="form-row">
+                            <label for="confidence">Confidence Level:</label>
+                            <input type="number" step="0.001" min="0.01" max="0.999" name="confidence" id="confidence"
+                                value="{{ confidence_val }}">
+                        </div>
 
-        <div class="form-row">
-          <label for="iterations">Monte Carlo Iterations:</label>
-          <input type="number" id="iterations" name="iterations" value="1000" min="1" required>
-        </div>
+                        <div class="form-row">
+                            <label for="iterations">Monte Carlo Iterations:</label>
+                            <input type="number" step="1" min="10" name="iterations" id="iterations"
+                                value="{{ iterations_val }}">
+                        </div>
 
-        <div class="form-row">
-          <label for="side">Side:</label>
-          <select id="side" name="side" required>
-            <option value="lower" selected>Lower</option>
-            <option value="upper">Upper</option>
-          </select>
-        </div>
+                        <div class="form-row">
+                            <label for="steps">Number of Steps:
+                            </label>
+                            <input type="number" step="1" min="1" name="steps" id="steps"
+                                value="{{ steps_val }}">
+                        </div>
 
-        <button type="submit" class="primary-btn">Calculate</button>
-      </form>
+                        <div class="form-row">
+                            <label for="iterations_per_step">Iterations Per Step:
+                            </label>
+                            <input type="number" step="1" min="1" name="iterations_per_step" id="iterations_per_step"
+                                value="{{ iterations_per_step_val }}">
+                        </div>
 
-      {% if result %}
-      <div class="result-section">
-        <h3>Result</h3>
-        <div class="result">{{ result }}</div>
-      </div>
-      {% endif %}
-    </section>
-  </main>
+                        <div class="form-row">
+                            <label for="side">Side:</label>
+                            <select id="side" name="side" required>
+                                <option value="lower" {{ 'selected' if side_val=='lower' else '' }}>lower
+                                </option>
+                                <option value="upper" {{ 'selected' if side_val=='upper' else '' }}>upper
+                                </option>
+                            </select>
+                        </div>
 
-  <footer>
-    <div class="container">
-      <p>© <span id="year"></span> Bounds on the Mean • Unknown-Support Explorer</p>
-    </div>
-  </footer>
+                        <div class="form-row">
+                            <label for="min_max">Min/Max Support Value:</label>
+                            <input type="number" step="1" min="0" name="min_max" id="min_max"
+                                value="{{ min_max_val }}">
+                        </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('year').textContent = new Date().getFullYear();
-    });
-  </script>
+                        <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
+
+                    </form>
+                </div>
+
+                <div class="right-side" style="width: 90%;">
+                    <div id="chart-wrap">
+                        <div id="status" class="muted"></div>
+                        <div class="row-span-2">
+                            <div id="progress" aria-label="Computation progress">
+                                <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                    aria-valuenow="0">
+                                </div>
+                                <div id="progress-text">0%</div>
+                            </div>
+                        </div>
+                        <canvas id="boundsChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+        </section>
+
+        {% if result %}
+        <div id="single-result">{{ result }}</div>
+        {% endif %}
+
+
+    </main>
+    <script>
+        const form = document.getElementById("bounds-form");
+        const statusEl = document.getElementById("status");
+        const runBtn = document.getElementById("run-btn");
+
+        // Progress bar refs
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+        let totalBatches = 0;
+        let completedBatches = 0;
+
+        function setProgress(pct) {
+            const clamped = Math.max(0, Math.min(100, pct));
+            progressBar.style.width = clamped + "%";
+            progressBar.setAttribute("aria-valuenow", String(clamped));
+            progressText.textContent = clamped.toFixed(0) + "%";
+        }
+        function resetProgress() {
+            totalBatches = 0;
+            completedBatches = 0;
+            setProgress(0);
+        }
+
+        // Chart.js setup: three datasets using {x,y} so fill aligns by x
+        const ctx = document.getElementById("boundsChart").getContext("2d");
+        const data = {
+            datasets: [
+                // 0: helper upper = mean + std (transparent, still present)
+                {
+                    label: "band-anchor",
+                    data: [],
+                    borderColor: "rgba(0,0,0,0)",
+                    backgroundColor: "rgba(0,0,0,0)",
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    parsing: { xAxisKey: "x", yAxisKey: "y" },
+                    spanGaps: true
+                },
+                // 1: lower = mean - std, fill to dataset 0
+                {
+                    label: "± std",
+                    data: [],
+                    pointRadius: 0,
+                    borderWidth: 0,
+                    fill: { target: 0 },
+                    backgroundColor: "rgba(0, 123, 255, 0.18)",
+                    parsing: { xAxisKey: "x", yAxisKey: "y" },
+                    spanGaps: true
+                },
+                // 2: mean
+                {
+                    label: "mean",
+                    data: [],
+                    tension: 0.2,
+                    pointRadius: 2,
+                    borderWidth: 2,
+                    borderColor: "#007bff",
+                    backgroundColor: "#007bff",
+                    parsing: { xAxisKey: "x", yAxisKey: "y" },
+                    spanGaps: true
+                }
+            ]
+        };
+
+        const chart = new Chart(ctx, {
+            type: "line",
+            data,
+            options: {
+                responsive: true,
+                animation: false,
+                interaction: { mode: "nearest", intersect: false },
+                plugins: {
+                    legend: {
+                        labels: {
+                            // hide the helper from legend
+                            filter: (item) => item.datasetIndex !== 0
+                        }
+                    },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: { type: "linear", title: { display: true, text: "Monte Carlo Iterations" } },
+                    y: { title: { display: true, text: "Bound" } }
+                }
+            }
+        });
+
+        let es = null;
+
+        function closeStream() {
+            if (es) es.close();
+            es = null;
+            runBtn.disabled = false;
+        }
+
+        function resetChart() {
+            for (const ds of chart.data.datasets) ds.data = [];
+            chart.update();
+        }
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            closeStream();
+            resetChart();
+            resetProgress();
+
+            statusEl.textContent = "Starting...";
+            runBtn.disabled = true;
+
+            const sample = document.getElementById("sample").value.trim();
+            const confidence = document.getElementById("confidence").value.trim();
+            const iterations = document.getElementById("iterations").value.trim();
+            const side = document.getElementById("side").value;
+            const steps = document.getElementById("steps").value.trim();
+            const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
+            const min_max = document.getElementById("min_max").value.trim();
+
+            const qs = new URLSearchParams({ sample, confidence, iterations, side, steps, iterations_per_step, min_max });
+            const url = `/boundswithsample/stream?${qs.toString()}`;
+
+            es = new EventSource(url);
+
+            es.onmessage = (evt) => {
+                if (!evt.data) return;
+                const msg = JSON.parse(evt.data);
+
+                if (msg.type === "error") {
+                    statusEl.textContent = `Error: ${msg.message}`;
+                    setProgress(0);
+                    closeStream();
+                    return;
+                }
+
+                if (msg.type === "start") {
+                    totalBatches = Number(msg.points) || 0;
+                    statusEl.textContent = `Running ${totalBatches} batches...`;
+                    if (typeof msg.lo === "number" && typeof msg.hi === "number" && msg.lo < msg.hi) {
+                        const pad = (msg.hi - msg.lo) * 0.05;
+                        chart.options.scales.y.suggestedMin = msg.lo - pad;
+                        chart.options.scales.y.suggestedMax = msg.hi + pad;
+                        chart.update();
+                    }
+                    return;
+                }
+
+                if (msg.type === "update") {
+                    const B = msg.B;
+                    const mean = msg.mean;
+                    const std = msg.std;
+
+                    // push as {x, y} on all three datasets
+                    chart.data.datasets[0].data.push({ x: B, y: mean + std }); // upper
+                    chart.data.datasets[1].data.push({ x: B, y: mean - std }); // lower
+                    chart.data.datasets[2].data.push({ x: B, y: mean });       // mean
+                    chart.update();
+
+                    completedBatches += 1;
+                    const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
+                    setProgress(pct);
+
+                    statusEl.innerHTML = `
+            <strong>Progress:</strong> Monte Carlo Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
+          `;
+                }
+            };
+
+            es.addEventListener("end", () => {
+                setProgress(100);
+
+                // Replace “Progress:” with “Final:” for the last line
+                const current = statusEl.innerHTML.replace("Progress:", "Final:");
+                statusEl.innerHTML = current;
+
+                closeStream();
+            });
+            es.onerror = () => {
+                statusEl.innerHTML += `<br><strong>Stream error.</strong>`;
+                closeStream();
+            };
+        });
+    </script>
 </body>
 
 </html>
