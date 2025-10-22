@@ -42,7 +42,7 @@
             border-radius: 4px;
             font-family: monospace;
             font-size: 0.95rem;
-            height:  40px;
+            height: 40px;
         }
 
         #chart-wrap {
@@ -101,78 +101,87 @@
         <h2 id="download-heading">Gaffke Bound</h2>
         <p class="section-note">Gaffke bound calculator</p>
         <section class="card calculator">
-            <h2>Input Parameters</h2>
 
-            <div class="row">
-                <div class="left-side">
+            <div class="">
+                <div class="">
                     <form id="bounds-form" autocomplete="off" class="form-grid">
-                        <div class="form-row">
-                            <label for="sample">Sample (comma-separated):</label>
-                            <input type="text" name="sample" id="sample" value="{{ sample_val }}"
-                                placeholder="e.g. 1.2, 3.4, 5.6" required>
+
+                        <div class="form-section-top">
+                            <h4>Global Settings</h4>
+
+                            <div class="form-row-top">
+                                <label for="side">Side:</label>
+                                <select id="side" name="side" required>
+                                    <option value="lower">Lower</option>
+                                    <option value="upper">Upper</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row-top">
+                                <label for="confidence">Confidence Level:</label>
+                                <input type="number" step="0.001" min="0.01" max="0.999" name="confidence"
+                                    id="confidence" value="{{ confidence_val }}" required>
+                            </div>
+
+
+                            <div class="form-row-top">
+                                <label for="sample">Sample (comma-separated):</label>
+                                <input type="text" name="sample" id="sample"
+                                    placeholder="e.g. 1.2, 3.4, 5.6" required>
+                            </div>
                         </div>
 
-                        <div class="form-row">
-                            <label for="confidence">Confidence Level:</label>
-                            <input type="number" step="0.001" min="0.01" max="0.999" name="confidence" id="confidence"
-                                value="{{ confidence_val }}">
+                        <div class="row">
+                            <div class="left-side">
+                                <div class="form-section">
+                                    <h4>Gaffke Parameters</h4>
+                                    <div class="form-row">
+                                        <label for="min_max">Min/Max Support Value:</label>
+                                        <input type="number" step="1" min="0" name="min_max" id="min_max" value="{{ min_max_val }}">
+                                    </div>
+
+                                    <div class="form-row">
+                                        <label for="iterations">Monte Carlo Iterations:</label>
+                                        <input type="number" step="1" min="10" name="iterations" id="iterations"
+                                            value="{{ iterations_val }}">
+                                    </div>
+
+                                    <div class="form-row">
+                                        <label for="steps">Number of Steps:
+                                        </label>
+                                        <input type="number" step="1" min="1" name="steps" id="steps" value="{{ steps_val }}">
+                                    </div>
+
+                                    <div class="form-row">
+                                        <label for="iterations_per_step">Iterations Per Step:
+                                        </label>
+                                        <input type="number" step="1" min="1" name="iterations_per_step"
+                                            id="iterations_per_step" value="{{ iterations_per_step_val }}">
+                                    </div>
+                                </div>
+                                 <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
+                            </div>
+                            <div class="right-side" style="width: 90%;">
+                                <div id="chart-wrap">
+                                    <div id="status" class="muted">Ready to calculate</div>
+                                    <div class="row-span-2">
+                                        <div id="progress" aria-label="Computation progress">
+                                            <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                                aria-valuenow="0">
+                                            </div>
+                                            <div id="progress-text">0%</div>
+                                        </div>
+                                    </div>
+                                    <canvas id="boundsChart" height="120"></canvas>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-row">
-                            <label for="iterations">Monte Carlo Iterations:</label>
-                            <input type="number" step="1" min="10" name="iterations" id="iterations"
-                                value="{{ iterations_val }}">
-                        </div>
 
-                        <div class="form-row">
-                            <label for="steps">Number of Steps:
-                            </label>
-                            <input type="number" step="1" min="1" name="steps" id="steps"
-                                value="{{ steps_val }}">
-                        </div>
-
-                        <div class="form-row">
-                            <label for="iterations_per_step">Iterations Per Step:
-                            </label>
-                            <input type="number" step="1" min="1" name="iterations_per_step" id="iterations_per_step"
-                                value="{{ iterations_per_step_val }}">
-                        </div>
-
-                        <div class="form-row">
-                            <label for="side">Side:</label>
-                            <select id="side" name="side" required>
-                                <option value="lower" {{ 'selected' if side_val=='lower' else '' }}>lower
-                                </option>
-                                <option value="upper" {{ 'selected' if side_val=='upper' else '' }}>upper
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="min_max">Min/Max Support Value:</label>
-                            <input type="number" step="1" min="0" name="min_max" id="min_max"
-                                value="{{ min_max_val }}">
-                        </div>
-
-                        <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
 
                     </form>
                 </div>
 
-                <div class="right-side" style="width: 90%;">
-                    <div id="chart-wrap">
-                        <div id="status" class="muted"></div>
-                        <div class="row-span-2">
-                            <div id="progress" aria-label="Computation progress">
-                                <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                                    aria-valuenow="0">
-                                </div>
-                                <div id="progress-text">0%</div>
-                            </div>
-                        </div>
-                        <canvas id="boundsChart" height="120"></canvas>
-                    </div>
-                </div>
             </div>
 
 
@@ -265,8 +274,17 @@
                     tooltip: { enabled: true }
                 },
                 scales: {
-                    x: { type: "linear", title: { display: true, text: "Monte Carlo Iterations" } },
-                    y: { title: { display: true, text: "Bound" } }
+                    x: {
+                        type: "logarithmic", title: { display: true, text: "Monte Carlo Iterations" },
+                        ticks: {
+                            callback: function (value) {
+                                const exp = Math.log10(value);
+                                if (Number.isInteger(exp)) return "10^" + exp;
+                                return null;
+                            }
+                        }
+                    },
+                    y: { title: { display: true, text: "Bound" } },
                 }
             }
         });
