@@ -67,7 +67,22 @@ def boundswithsample_stream():
         if steps_val == 1:
             Bs = [iterations_val]
         else:
-            Bs = np.unique([int(b) for b in np.linspace(start_B, max_B, num=steps_val)])
+            # Bs = np.unique([int(b) for b in np.linspace(start_B, max_B, num=steps_val)])
+            # log_B = np.log(iterations_val)
+            # frac = log_B/steps_val
+            # Bs = np.rint(np.exp(np.arange(1, log_B, frac)))
+            # Bs[-1] = iterations_val  # ensure last is exactly iterations_val
+
+            start_B = max(1, int(start_B))
+            max_B = int(max_B)
+
+            # Grid in log space, inclusive of both endpoints
+            grid = np.exp(np.linspace(np.log(start_B), np.log(max_B), steps_val))
+
+            # Round up to avoid duplicates at the low end, then enforce monotonicity
+            Bs = np.unique(np.round(grid).astype(int))
+
+            Bs[-1] = max_B
 
     except Exception as e:
         msg = str(e)  # capture before defining the generator
