@@ -79,6 +79,62 @@
             color: #333;
             font-family: monospace;
         }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
     </style>
 </head>
 
@@ -110,11 +166,11 @@
                             <h4>Global Settings</h4>
 
                             <div class="form-row-top">
-                                <label for="side">Side:</label>
-                                <select id="side" name="side" required>
-                                    <option value="lower">Lower</option>
-                                    <option value="upper">Upper</option>
-                                </select>
+                                <label for="side">Lower bound (toggle off) or Upper bound (toggle on):</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="side" name="side">
+                                    <span class="slider round"></span>
+                                </label>
                             </div>
 
                             <div class="form-row-top">
@@ -147,13 +203,13 @@
                                     </div>
 
                                     <div class="form-row">
-                                        <label for="steps">Number of Steps:
+                                        <label for="steps">Number of steps in Monte Carlo Plot:
                                         </label>
                                         <input type="number" step="1" min="1" name="steps" id="steps" value="{{ steps_val }}">
                                     </div>
 
                                     <div class="form-row">
-                                        <label for="iterations_per_step">Iterations Per Step:
+                                        <label for="iterations_per_step">Number of repeated trials for each Monte Carlo experiment:
                                         </label>
                                         <input type="number" step="1" min="1" name="iterations_per_step"
                                             id="iterations_per_step" value="{{ iterations_per_step_val }}">
@@ -314,7 +370,7 @@
             const sample = document.getElementById("sample").value.trim();
             const confidence = document.getElementById("confidence").value.trim();
             const iterations = document.getElementById("iterations").value.trim();
-            const side = document.getElementById("side").value;
+            const side = document.getElementById("side").checked ? "upper" : "lower";
             const steps = document.getElementById("steps").value.trim();
             const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
             const min_max = document.getElementById("min_max").value.trim();
