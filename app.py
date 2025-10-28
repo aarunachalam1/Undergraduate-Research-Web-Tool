@@ -53,7 +53,6 @@ def boundswithsample_stream():
         min_max_val = float(request.args.get("min_max", "0"))
 
         side_val = request.args.get("side", "lower").strip().lower()
-        print(f"side_val: {side_val}")
 
         if side_val not in ["lower", "upper"]:
             side_val = "lower"
