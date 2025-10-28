@@ -44,7 +44,6 @@ def boundswithsample_stream():
     """
     # parse inputs
     try:
-        print(request.args)
         sample_val = request.args.get("sample", "")
         confidence_val = float(request.args.get("confidence", "0.95"))
         iterations_val = int(request.args.get("iterations", "1000"))
@@ -53,7 +52,6 @@ def boundswithsample_stream():
         min_max_val = float(request.args.get("min_max", "0"))
 
         side_val = request.args.get("side", "lower").strip().lower()
-
         if side_val not in ["lower", "upper"]:
             side_val = "lower"
 
