@@ -79,6 +79,44 @@
             color: #333;
             font-family: monospace;
         }
+
+        .segmented {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 1px solid #d0d7de;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .segmented input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .segmented label {
+            padding: .45rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            background: var(--card);
+            color: var(--text);
+            transition: background .15s ease, color .15s ease, transform .05s ease;
+            margin: 0;
+        }
+
+        .segmented label:active {
+            transform: translateY(1px);
+        }
+
+        .segmented input:checked+label {
+            background: #3f71d4;
+            color: #fff;
+        }
+
+        .segmented label+input+label {
+            border-left: 1px solid rgba(0, 0, 0, .08);
+        }
     </style>
 </head>
 
@@ -109,13 +147,26 @@
                         <div class="form-section-top">
                             <h4>Global Settings</h4>
 
+
                             <div class="form-row-top">
-                                <label for="side">Side:</label>
-                                <select id="side" name="side" required>
-                                    <option value="lower">Lower</option>
-                                    <option value="upper">Upper</option>
-                                </select>
+                                <label class="label" for="side-lower">Bound on Mean:</label>
+                                <div class="segmented" role="tablist" aria-label="Bound on Mean">
+                                    <input type="radio" id="side-lower" name="side" value="lower" {{ 'checked' if
+                                        side_val=='lower' else '' }}>
+                                    <label for="side-lower" role="tab"
+                                        aria-selected="{{ 'true' if side_val=='lower' else 'false' }}">
+                                        Lower Bound
+                                    </label>
+
+                                    <input type="radio" id="side-upper" name="side" value="upper" {{ 'checked' if
+                                        side_val=='upper' else '' }}>
+                                    <label for="side-upper" role="tab"
+                                        aria-selected="{{ 'true' if side_val=='upper' else 'false' }}">
+                                        Upper Bound
+                                    </label>
+                                </div>
                             </div>
+
 
                             <div class="form-row-top">
                                 <label for="confidence">Confidence Level:</label>
@@ -126,8 +177,7 @@
 
                             <div class="form-row-top">
                                 <label for="sample">Sample (comma-separated):</label>
-                                <input type="text" name="sample" id="sample"
-                                    placeholder="e.g. 1.2, 3.4, 5.6" required>
+                                <input type="text" name="sample" id="sample" placeholder="e.g. 1.2, 3.4, 5.6" required>
                             </div>
                         </div>
 
@@ -137,7 +187,8 @@
                                     <h4>Gaffke Parameters</h4>
                                     <div class="form-row">
                                         <label for="min_max">Min/Max Support Value:</label>
-                                        <input type="number" step="1" min="0" name="min_max" id="min_max" value="{{ min_max_val }}">
+                                        <input type="number" step="1" min="0" name="min_max" id="min_max"
+                                            value="{{ min_max_val }}">
                                     </div>
 
                                     <div class="form-row">
@@ -147,27 +198,29 @@
                                     </div>
 
                                     <div class="form-row">
-                                        <label for="steps">Number of Steps:
+                                        <label for="steps">Number of steps in Monte Carlo Plot:
                                         </label>
-                                        <input type="number" step="1" min="1" name="steps" id="steps" value="{{ steps_val }}">
+                                        <input type="number" step="1" min="1" name="steps" id="steps"
+                                            value="{{ steps_val }}">
                                     </div>
 
                                     <div class="form-row">
-                                        <label for="iterations_per_step">Iterations Per Step:
+                                        <label for="iterations_per_step">Number of repeated trials for each Monte Carlo
+                                            experiment:
                                         </label>
                                         <input type="number" step="1" min="1" name="iterations_per_step"
                                             id="iterations_per_step" value="{{ iterations_per_step_val }}">
                                     </div>
                                 </div>
-                                 <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
+                                <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
                             </div>
                             <div class="right-side" style="width: 90%;">
                                 <div id="chart-wrap">
                                     <div id="status" class="muted">Ready to calculate</div>
                                     <div class="row-span-2">
                                         <div id="progress" aria-label="Computation progress">
-                                            <div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-                                                aria-valuenow="0">
+                                            <div id="progress-bar" role="progressbar" aria-valuemin="0"
+                                                aria-valuemax="100" aria-valuenow="0">
                                             </div>
                                             <div id="progress-text">0%</div>
                                         </div>
@@ -314,7 +367,7 @@
             const sample = document.getElementById("sample").value.trim();
             const confidence = document.getElementById("confidence").value.trim();
             const iterations = document.getElementById("iterations").value.trim();
-            const side = document.getElementById("side").value;
+            const side = document.querySelector('input[name="side"]:checked')?.value || "lower";
             const steps = document.getElementById("steps").value.trim();
             const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
             const min_max = document.getElementById("min_max").value.trim();
