@@ -1,10 +1,16 @@
+import inspect
 from flask import Flask, request, render_template
 from gaffke import gaffke_CI
-
+from other_bounds import student_t, anderson_bound
 from flask import Flask, request, render_template, Response, stream_with_context
 import json
 import numpy as np
 
+BOUND_FUNCTIONS = {
+    "gaffke": gaffke_CI,
+    "student_t": student_t,
+    "anderson": anderson_bound
+}
 app = Flask(__name__)
 application = app  # For compatibility with some deployment setups
 
@@ -32,6 +38,49 @@ def boundswithsample():
 def sse_format(payload: dict) -> str:
     return f"data: {json.dumps(payload)}\n\n"
 
+@app.route("/boundswithsample/simple")
+def boundswithsample_simple():
+    """
+    Simple endpoint for bounds with no Monte Carlo simulation.
+    """
+    try:
+        bound_type = request.args.get("bound_type").strip().lower()
+        sample_val = request.args.get("sample", "")
+        confidence_val = float(request.args.get("confidence", "0.95"))
+        side_val = request.args.get("side", "lower").strip().lower()
+        
+        sample = [float(x) for x in sample_val.split(",") if x.strip() != ""]
+        
+        if side_val not in ["lower", "upper"]:
+            raise ValueError("side must be 'lower' or 'upper'.")
+    
+        if len(sample) == 0:
+            raise ValueError("Sample is empty.")
+        
+        bound_func = BOUND_FUNCTIONS.get(bound_type)
+
+        if bound_func is None:
+            raise ValueError(f"Unknown bound type: {bound_type}")
+
+        sig = inspect.signature(bound_func)
+        args = {
+            "x": sample,
+            "alpha": 1 - confidence_val,
+            "side": side_val
+        }
+        valid_args = {
+            name: val for name, val in args.items() if name in sig.parameters
+        }
+
+        result = bound_func(**valid_args)
+
+        return {"value": float(result)}
+    
+    except Exception as e:
+        return {"error": str(e)}
+
+    
+
 @app.route("/boundswithsample/stream")
 def boundswithsample_stream():
     """
@@ -45,6 +94,7 @@ def boundswithsample_stream():
     # parse inputs
     try:
         sample_val = request.args.get("sample", "")
+        bound_type = request.args.get("bound_type", "gaffke").strip().lower()
         confidence_val = float(request.args.get("confidence", "0.95"))
         iterations_val = int(request.args.get("iterations", "1000"))
         steps_val = int(request.args.get("steps", "1"))
@@ -101,8 +151,31 @@ def boundswithsample_stream():
 
         for idx, B in enumerate(Bs, start=1):
             cur_vals = []
+            bound_func = BOUND_FUNCTIONS.get(bound_type)
+
+            if bound_func is None:
+                yield sse_format({"type": "error", "message": f"Unknown bound type: {bound_type}"})
+                yield "event: end\ndata: {}\n\n"
+                return
+            
+            sig = inspect.signature(bound_func)
             for _ in range(iterations_per_step_val):
-                bound = gaffke_CI(sample, conf=confidence_val, B=int(B), side=side_val, extrema=min_max_val)
+                args = {
+                    "x": sample,
+                    "alpha": 1 - confidence_val,
+                    "conf": confidence_val,
+                    "B": int(B),
+                    "side": side_val,
+                    "extrema": min_max_val
+                }
+
+                valid_args = {
+                    name: val for name, val in args.items() if name in sig.parameters
+                }
+                try:
+                    bound = bound_func(**valid_args)
+                except TypeError:
+                    bound = bound_func(sample)
                 cur_vals.append(float(bound))
 
             mean_val = float(np.mean(cur_vals))

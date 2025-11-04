@@ -143,7 +143,15 @@
             <div class="">
                 <div class="">
                     <form id="bounds-form" autocomplete="off" class="form-grid">
-
+                        <div class ="form-row-top">
+                            <label for="bound-type">Select Bound:</label>
+                            <select name="bound-type" id="bound-type">
+                                <option value="gaffke" selected>Gaffke Bound</option>
+                                <option value="student_t">Student-t Bound</option>
+                                <option value="anderson">Anderson Bound</option>
+                                <option value="hoeffding">Hoeffding Bound</option>
+                            </select>
+                        </div>
                         <div class="form-section-top">
                             <h4>Global Settings</h4>
 
@@ -183,40 +191,56 @@
 
                         <div class="row">
                             <div class="left-side">
-                                <div class="form-section">
-                                    <h4>Gaffke Parameters</h4>
-                                    <div class="form-row">
-                                        <label for="min_max">Min/Max Support Value:</label>
-                                        <input type="number" step="1" min="0" name="min_max" id="min_max"
-                                            value="{{ min_max_val }}">
-                                    </div>
+                                <div id="gaffke-params" class="bound-params">
+                                    <div class="form-section">
+                                        <h4>Gaffke Parameters</h4>
+                                        <div class="form-row">
+                                            <label for="min_max">Min/Max Support Value:</label>
+                                            <input type="number" step="1" min="0" name="min_max" id="min_max"
+                                                value="{{ min_max_val }}">
+                                        </div>
 
-                                    <div class="form-row">
-                                        <label for="iterations">Monte Carlo Iterations:</label>
-                                        <input type="number" step="1" min="10" name="iterations" id="iterations"
-                                            value="{{ iterations_val }}">
-                                    </div>
+                                        <div class="form-row">
+                                            <label for="iterations">Monte Carlo Iterations:</label>
+                                            <input type="number" step="1" min="10" name="iterations" id="iterations"
+                                                value="{{ iterations_val }}">
+                                        </div>
 
-                                    <div class="form-row">
-                                        <label for="steps">Number of steps in Monte Carlo Plot:
-                                        </label>
-                                        <input type="number" step="1" min="1" name="steps" id="steps"
-                                            value="{{ steps_val }}">
-                                    </div>
+                                        <div class="form-row">
+                                            <label for="steps">Number of steps in Monte Carlo Plot:
+                                            </label>
+                                            <input type="number" step="1" min="1" name="steps" id="steps"
+                                                value="{{ steps_val }}">
+                                        </div>
 
-                                    <div class="form-row">
-                                        <label for="iterations_per_step">Number of repeated trials for each Monte Carlo
-                                            experiment:
-                                        </label>
-                                        <input type="number" step="1" min="1" name="iterations_per_step"
-                                            id="iterations_per_step" value="{{ iterations_per_step_val }}">
+                                        <div class="form-row">
+                                            <label for="iterations_per_step">Number of repeated trials for each Monte Carlo
+                                                experiment:
+                                            </label>
+                                            <input type="number" step="1" min="1" name="iterations_per_step"
+                                                id="iterations_per_step" value="{{ iterations_per_step_val }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="student-t-params" class="bound-params">
+                                    <div class="form-section">
+                                        <h4>Student-t Parameters</h4>
+                                        <p class="muted">No additional parameters required</p>
+                                    </div>
+                                </div>
+
+                                <div id="anderson-params" class="bound-params">
+                                    <div class = "form-section">
+                                        <h4>Anderson Parameters</h4>
+                                        <p class="muted">No additional parameters required</p>
                                     </div>
                                 </div>
                                 <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
                             </div>
-                            <div class="right-side" style="width: 90%;">
+                            <div class="right-side" id="monte-carlo-graph" style="width: 90%;">
                                 <div id="chart-wrap">
-                                    <div id="status" class="muted">Ready to calculate</div>
+                                    <div id="status-mc" class="muted status">Ready to calculate</div>
                                     <div class="row-span-2">
                                         <div id="progress" aria-label="Computation progress">
                                             <div id="progress-bar" role="progressbar" aria-valuemin="0"
@@ -228,27 +252,27 @@
                                     <canvas id="boundsChart" height="120"></canvas>
                                 </div>
                             </div>
+
+                            <div class="right-side" id="simple-display" style="width: 90%; display: none;">
+                                <div id="status-simple" class="muted status">Ready to calculate</div>
+                            </div>
                         </div>
-
-
-
                     </form>
                 </div>
-
             </div>
-
-
         </section>
-
-        {% if result %}
-        <div id="single-result">{{ result }}</div>
-        {% endif %}
-
 
     </main>
     <script>
         const form = document.getElementById("bounds-form");
-        const statusEl = document.getElementById("status");
+        
+        function getStatusEl() {
+            const boundType = document.getElementById("bound-type").value;
+            return boundType === "gaffke"
+                ? document.getElementById("status-mc")
+                : document.getElementById("status-simple");
+        }
+
         const runBtn = document.getElementById("run-btn");
 
         // Progress bar refs
@@ -355,15 +379,46 @@
             chart.update();
         }
 
+        const boundSelection = document.getElementById("bound-type");
+        const paramSelections = {
+            "gaffke": document.getElementById("gaffke-params"),
+            "student_t": document.getElementById("student-t-params"),
+            "anderson": document.getElementById("anderson-params")
+        };
+
+        const gaffkeWrap = document.getElementById("monte-carlo-graph");
+        const simpleWrap = document.getElementById("simple-display");
+
+        function showParams(selected) {
+            for (const key in paramSelections) {
+                paramSelections[key].style.display = key === selected ? "block" : "none";
+            }
+
+            if (selected === "gaffke") {
+                gaffkeWrap.style.display = "block";
+                simpleWrap.style.display = "none";
+            } else {
+                gaffkeWrap.style.display = "none";
+                simpleWrap.style.display = "block";
+            }
+        }
+
+        showParams(boundSelection.value);
+
+        boundSelection.addEventListener("change", (e) => {
+            showParams(e.target.value);
+        });
+
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             closeStream();
             resetChart();
             resetProgress();
 
-            statusEl.textContent = "Starting...";
+            getStatusEl().textContent = "Starting...";
             runBtn.disabled = true;
 
+            const bound_type = document.getElementById("bound-type").value;
             const sample = document.getElementById("sample").value.trim();
             const confidence = document.getElementById("confidence").value.trim();
             const iterations = document.getElementById("iterations").value.trim();
@@ -372,68 +427,97 @@
             const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
             const min_max = document.getElementById("min_max").value.trim();
 
-            const qs = new URLSearchParams({ sample, confidence, iterations, side, steps, iterations_per_step, min_max });
-            const url = `/boundswithsample/stream?${qs.toString()}`;
+            const qs = new URLSearchParams({ sample, confidence, iterations, side, steps, iterations_per_step, min_max, bound_type });
+            
+            if (bound_type === "gaffke") {
 
-            es = new EventSource(url);
+                const url = `/boundswithsample/stream?${qs.toString()}`;
+                
+                es = new EventSource(url);
 
-            es.onmessage = (evt) => {
-                if (!evt.data) return;
-                const msg = JSON.parse(evt.data);
+                es.onmessage = (evt) => {
+                    if (!evt.data) return;
+                    const msg = JSON.parse(evt.data);
 
-                if (msg.type === "error") {
-                    statusEl.textContent = `Error: ${msg.message}`;
-                    setProgress(0);
-                    closeStream();
-                    return;
-                }
-
-                if (msg.type === "start") {
-                    totalBatches = Number(msg.points) || 0;
-                    statusEl.textContent = `Running ${totalBatches} batches...`;
-                    if (typeof msg.lo === "number" && typeof msg.hi === "number" && msg.lo < msg.hi) {
-                        const pad = (msg.hi - msg.lo) * 0.05;
-                        chart.options.scales.y.suggestedMin = msg.lo - pad;
-                        chart.options.scales.y.suggestedMax = msg.hi + pad;
-                        chart.update();
+                    if (msg.type === "error") {
+                        getStatusEl().textContent = `Error: ${msg.message}`;
+                        setProgress(0);
+                        closeStream();
+                        runBtn.disabled = false;
+                        return;
                     }
-                    return;
-                }
 
-                if (msg.type === "update") {
-                    const B = msg.B;
-                    const mean = msg.mean;
-                    const std = msg.std;
+                    if (msg.type === "start") {
+                        totalBatches = Number(msg.points) || 0;
+                        getStatusEl().textContent = `Running ${totalBatches} batches...`;
+                        if (typeof msg.lo === "number" && typeof msg.hi === "number" && msg.lo < msg.hi) {
+                            const pad = (msg.hi - msg.lo) * 0.05;
+                            chart.options.scales.y.suggestedMin = msg.lo - pad;
+                            chart.options.scales.y.suggestedMax = msg.hi + pad;
+                            chart.update();
+                        }
+                        return;
+                    }
 
-                    // push as {x, y} on all three datasets
-                    chart.data.datasets[0].data.push({ x: B, y: mean + std }); // upper
-                    chart.data.datasets[1].data.push({ x: B, y: mean - std }); // lower
-                    chart.data.datasets[2].data.push({ x: B, y: mean });       // mean
-                    chart.update();
+                    if (msg.type === "update") {
+                        const B = msg.B;
+                        const mean = msg.mean;
+                        const std = msg.std;
 
-                    completedBatches += 1;
-                    const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
-                    setProgress(pct);
+                        // push as {x, y} on all three datasets
+                        chart.data.datasets[0].data.push({ x: B, y: mean + std }); // upper
+                        chart.data.datasets[1].data.push({ x: B, y: mean - std }); // lower
+                        chart.data.datasets[2].data.push({ x: B, y: mean });       // mean
+                        chart.update();
 
-                    statusEl.innerHTML = `
-            <strong>Progress:</strong> Monte Carlo Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
-          `;
-                }
-            };
+                        completedBatches += 1;
+                        const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
+                        setProgress(pct);
 
-            es.addEventListener("end", () => {
-                setProgress(100);
+                        getStatusEl().innerHTML = `
+                <strong>Progress:</strong> Monte Carlo Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
+            `;
+                    }
+                };
 
-                // Replace “Progress:” with “Final:” for the last line
-                const current = statusEl.innerHTML.replace("Progress:", "Final:");
-                statusEl.innerHTML = current;
+                es.addEventListener("end", () => {
+                    setProgress(100);
 
-                closeStream();
-            });
-            es.onerror = () => {
-                statusEl.innerHTML += `<br><strong>Stream error.</strong>`;
-                closeStream();
-            };
+                    // Replace “Progress:” with “Final:” for the last line
+                    const current = getStatusEl().innerHTML.replace("Progress:", "Final:");
+                    getStatusEl().innerHTML = current;
+
+                    closeStream();
+                    runBtn.disabled = false;
+                });
+                es.onerror = () => {
+                    getStatusEl().innerHTML += `<br><strong>Stream error.</strong>`;
+                    closeStream();
+                    runBtn.disabled = false;
+                };
+            }
+
+            else {
+                const url = `/boundswithsample/simple?${qs.toString()}`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            getStatusEl().innerHTML = `<strong>Error:</strong> ${data.error}`;
+                            setProgress(0);
+                        } else {
+                            getStatusEl().innerHTML = `<strong>Result:</strong> ${data.value}`;
+                            setProgress(100);
+                        }
+                        getStatusEl().classList.remove("muted")
+                        runBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        getStatusEl().innerHTML = `<strong>Error:</strong> ${error}`;
+                        setProgress(0);
+                        runBtn.disabled = false;
+                    });
+            }
         });
     </script>
 </body>
