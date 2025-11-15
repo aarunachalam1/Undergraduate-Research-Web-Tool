@@ -12,7 +12,7 @@ BOUND_FUNCTIONS = {
     "anderson": anderson_bound
 }
 app = Flask(__name__)
-application = app  # For compatibility with some deployment setups
+application = app
 
 @app.route("/", methods=["GET"])
 def index():
@@ -44,7 +44,7 @@ def boundswithsample_simple():
     Simple endpoint for bounds with no Monte Carlo simulation.
     """
     try:
-        bound_type = request.args.get("bound_type").strip().lower()
+        bound_type = request.args.get("bound").strip().lower()
         sample_val = request.args.get("sample", "")
         confidence_val = float(request.args.get("confidence", "0.95"))
         side_val = request.args.get("side", "lower").strip().lower()
@@ -84,115 +84,68 @@ def boundswithsample_simple():
 @app.route("/boundswithsample/stream")
 def boundswithsample_stream():
     """
-    Streams progressive results as Server-Sent Events.
+    Streams progressive Monte Carlo results for Gaffke bound.
     Query params:
       sample: "0.1,0.7,0.2"
       confidence: "0.95"
-      iterations: "10000"
+      iterations: "1000"
+      steps: "10"
+      iterations_per_step: "5"
+      min_max: "0"
       side: "lower" or "upper"
     """
-    # parse inputs
     try:
-        sample_val = request.args.get("sample", "")
-        bound_type = request.args.get("bound_type", "gaffke").strip().lower()
-        confidence_val = float(request.args.get("confidence", "0.95"))
-        iterations_val = int(request.args.get("iterations", "1000"))
-        steps_val = int(request.args.get("steps", "1"))
-        iterations_per_step_val = int(request.args.get("iterations_per_step", "1"))
-        min_max_val = float(request.args.get("min_max", "0"))
-
-        side_val = request.args.get("side", "lower").strip().lower()
-        if side_val not in ["lower", "upper"]:
-            side_val = "lower"
-
-        sample = [float(x) for x in sample_val.split(",") if x.strip() != ""]
-        if len(sample) == 0:
+        sample = [float(x) for x in request.args.get("sample", "").split(",") if x.strip()]
+        if not sample:
             raise ValueError("Sample is empty.")
-        if any((x < 0) for x in sample):
-            raise ValueError("Sample values must be in [0, inf].")
 
-        max_B = max(10, iterations_val)
+        confidence = float(request.args.get("confidence", 0.95))
+        iterations = int(request.args.get("iterations", 1000))
+        steps = int(request.args.get("steps", 10))
+        iterations_per_step = int(request.args.get("iterations_per_step", 1))
+        min_max = float(request.args.get("min_max", 0))
+        side = request.args.get("side", "lower").lower()
+        if side not in ["lower", "upper"]:
+            side = "lower"
 
-        start_B = 10 if steps_val >= 1 else iterations_val
-        if steps_val == 1:
-            Bs = [iterations_val]
-        else:
-            # Bs = np.unique([int(b) for b in np.linspace(start_B, max_B, num=steps_val)])
-            # log_B = np.log(iterations_val)
-            # frac = log_B/steps_val
-            # Bs = np.rint(np.exp(np.arange(1, log_B, frac)))
-            # Bs[-1] = iterations_val  # ensure last is exactly iterations_val
-
-            start_B = max(1, int(start_B))
-            max_B = int(max_B)
-
-            # Grid in log space, inclusive of both endpoints
-            grid = np.exp(np.linspace(np.log(start_B), np.log(max_B), steps_val))
-
-            # Round up to avoid duplicates at the low end, then enforce monotonicity
-            Bs = np.unique(np.round(grid).astype(int))
-
-            Bs[-1] = max_B
-
+        Bs = np.unique(
+            np.round(np.exp(np.linspace(np.log(1), np.log(max(10, iterations)), steps))).astype(int)
+        )
+        Bs[-1] = iterations
     except Exception as e:
-        msg = str(e)  # capture before defining the generator
-
-        def err_stream(msg=msg):
-            yield sse_format({"type": "error", "message": msg})
-            yield "event: end\ndata: {}\n\n"
-
-        return Response(stream_with_context(err_stream()),
-                        mimetype="text/event-stream")
+        def err_stream():
+            yield sse_format({"type": "error", "message": str(e)})
+            yield sse_format({"type": "end"})
+        return Response(stream_with_context(err_stream()), mimetype="text/event-stream")
 
     @stream_with_context
     def generate():
-        # notify client we are starting
         yield sse_format({"type": "start", "points": len(Bs)})
 
         for idx, B in enumerate(Bs, start=1):
             cur_vals = []
-            bound_func = BOUND_FUNCTIONS.get(bound_type)
-
-            if bound_func is None:
-                yield sse_format({"type": "error", "message": f"Unknown bound type: {bound_type}"})
-                yield "event: end\ndata: {}\n\n"
-                return
-            
-            sig = inspect.signature(bound_func)
-            for _ in range(iterations_per_step_val):
-                args = {
-                    "x": sample,
-                    "alpha": 1 - confidence_val,
-                    "conf": confidence_val,
-                    "B": int(B),
-                    "side": side_val,
-                    "extrema": min_max_val
-                }
-
-                valid_args = {
-                    name: val for name, val in args.items() if name in sig.parameters
-                }
+            for _ in range(iterations_per_step):
                 try:
-                    bound = bound_func(**valid_args)
-                except TypeError:
-                    bound = bound_func(sample)
-                cur_vals.append(float(bound))
+                    val = gaffke_CI(x=sample, conf=confidence, B=B, side=side, extrema=min_max)
+                except Exception as e:
+                    yield sse_format({"type": "error", "message": str(e)})
+                    continue
+                cur_vals.append(float(val))
 
             mean_val = float(np.mean(cur_vals))
             std_val = float(np.std(cur_vals, ddof=1)) if len(cur_vals) > 1 else 0.0
 
-            payload = {
+            yield sse_format({
                 "type": "update",
                 "idx": idx,
                 "B": int(B),
                 "mean": mean_val,
-                "std": std_val,
-                "samples": cur_vals  # include raw if you want a table later
-            }
-            yield sse_format(payload)
-
-        # done
-        yield "event: end\ndata: {}\n\n"
+                "std": std_val
+            })
+        # Send a final data message with type 'end' so the client onmessage handler
+        # receives it as JSON (consistent with other messages) instead of relying
+        # on a named SSE event which the client doesn't listen for.
+        yield sse_format({"type": "end"})
 
     return Response(generate(), mimetype="text/event-stream")
 
