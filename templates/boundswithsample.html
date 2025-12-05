@@ -297,6 +297,20 @@
                                         <p class="muted">No additional parameters required</p>
                                     </div>
                                 </div>
+
+                                <div id="hoeffding-params" class="bound-params">
+                                    <div class = "form-section">
+                                        <h4>Hoeffding Parameters</h4>
+                                        <div class="form-row">
+                                            <label for="min_hoeffding">Min Support Value:</label>
+                                            <input type="number" step="1" min="0" name="min_hoeffding"
+                                                id="min_hoeffding" value="{{ min_hoeffding_val }}">
+                                            <label for="max_hoeffding">Max Support Value:</label>
+                                            <input type="number" step="1" min="0" name="max_hoeffding"
+                                                id="max_hoeffding" value="{{ max_hoeffding_val }}">
+                                        </div>
+                                    </div>
+                                </div>
                                 <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
                             </div>
                             <div class="right-side" id="monte-carlo-graph">
@@ -314,7 +328,7 @@
                                 </div>
                             </div>
 
-                            <div class="right-side" id="simple-display" style="width: 90%; display: none;">
+                            <div class="right-side" id="simple-display" style="display: none;">
                                 <div id="status-simple" class="muted status">Ready to calculate</div>
                             </div>
                         </div>
@@ -330,7 +344,8 @@
         const statusEls = {
             gaffke: document.getElementById("status-mc"),
             student_t: document.getElementById("status-simple"),
-            anderson: document.getElementById("status-simple")
+            anderson: document.getElementById("status-simple"),
+            hoeffding: document.getElementById("status-simple"),
         };
 
         function getStatusEl(boundType) {
@@ -368,42 +383,7 @@
         // Chart.js setup: three datasets using {x,y} so fill aligns by x
         const ctx = document.getElementById("boundsChart").getContext("2d");
         const data = {
-            datasets: [
-                // 0: helper upper = mean + std (transparent, still present)
-                {
-                    label: "band-anchor",
-                    data: [],
-                    borderColor: "rgba(0,0,0,0)",
-                    backgroundColor: "rgba(0,0,0,0)",
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    parsing: { xAxisKey: "x", yAxisKey: "y" },
-                    spanGaps: true
-                },
-                // 1: lower = mean - std, fill to dataset 0
-                {
-                    label: "± std",
-                    data: [],
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    fill: { target: 0 },
-                    backgroundColor: "rgba(0, 123, 255, 0.18)",
-                    parsing: { xAxisKey: "x", yAxisKey: "y" },
-                    spanGaps: true
-                },
-                // 2: mean
-                {
-                    label: "mean",
-                    data: [],
-                    tension: 0.2,
-                    pointRadius: 2,
-                    borderWidth: 2,
-                    borderColor: "#007bff",
-                    backgroundColor: "#007bff",
-                    parsing: { xAxisKey: "x", yAxisKey: "y" },
-                    spanGaps: true
-                }
-            ]
+            datasets: []
         };
 
         const chart = new Chart(ctx, {
@@ -416,8 +396,10 @@
                 plugins: {
                     legend: {
                         labels: {
-                            // hide the helper from legend
-                            filter: (item) => item.datasetIndex !== 0
+                            filter: (item) => {
+                            // item.text is the label shown in the legend
+                            return item.text !== '' && item.text != null;
+                            }
                         }
                     },
                     tooltip: { enabled: true }
@@ -497,7 +479,8 @@
         const paramSelections = {
             "gaffke": document.getElementById("gaffke-params"),
             "student_t": document.getElementById("student-t-params"),
-            "anderson": document.getElementById("anderson-params")
+            "anderson": document.getElementById("anderson-params"),
+            "hoeffding": document.getElementById("hoeffding-params"),
         };
 
         const gaffkeWrap = document.getElementById("monte-carlo-graph");
@@ -567,8 +550,22 @@
                     min_max,
                     side
                 });
+                if (boundType === "hoeffding") {
+                    const min_hoeffding = document.getElementById("min_hoeffding").value.trim();
+                    const max_hoeffding = document.getElementById("max_hoeffding").value.trim();
+                    qs.set("min_hoeffding", min_hoeffding);
+                    qs.set("max_hoeffding", max_hoeffding);
+                }
                 const url = `/boundswithsample/${boundType === "gaffke" ? "stream" : "simple"}?${qs.toString()}&bound=${boundType}`;
-                const baseColor = "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
+
+                const BOUND_COLORS = {
+                    gaffke:    "#7C3AED", // purple
+                    anderson:  "#0891B2", // teal
+                    student_t: "#DC2626", // red
+                    hoeffding: "#2D6CDF", // blue
+                };
+
+                const baseColor = BOUND_COLORS[boundType] || "#444444";
 
                 // For closed-form bounds (student_t, anderson, etc.) we only add
                 // a single 'mean' dataset. For Gaffke (Monte Carlo) we add three
@@ -585,9 +582,8 @@
                         pointRadius: 1.5,
                         borderWidth: 2,
                     }) - 1;
-
                     upperIndex = chart.data.datasets.push({
-                        label: `${boundType} (+std)`,
+                        label: `${boundType} (±std)`,
                         data: [],
                         tension: 0.2,
                         borderColor: baseColor,
@@ -595,15 +591,20 @@
                         pointRadius: 0,
                         borderWidth: 1,
                     }) - 1;
-
                     lowerIndex = chart.data.datasets.push({
-                        label: `${boundType} (-std)`,
+                        label: '', // same label for legend grouping
                         data: [],
                         tension: 0.2,
                         borderColor: baseColor,
                         borderDash: [4, 2],
                         pointRadius: 0,
                         borderWidth: 1,
+
+                        fill: {
+                            target: upperIndex,
+                            above: baseColor + "22", 
+                            below: baseColor + "22", 
+                        }
                     }) - 1;
                 } else {
                     // Closed-form - only show a single marker/line in the legend

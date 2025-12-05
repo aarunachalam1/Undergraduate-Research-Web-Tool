@@ -165,10 +165,19 @@ input:focus, select:focus {
   padding: 1rem;
   border: 1px solid #d8e1ff;
 }
-.right-side {
-  width: 150%;
-  flex: 2;
+.row {
+    display: grid;
+    grid-template-columns: 230px 1fr 1fr; /* left column, Monte Carlo, simple results */
+    gap: 2rem;
+    align-items: start;
 }
+
+.right-side {
+    flex: 0; /* remove any flex overrides */
+    width: auto; /* let grid handle the width */
+    margin-top: 0; /* remove negative margins */
+}
+
 .result {
   font-size: 1.2rem;
   font-weight: 600;

@@ -1,7 +1,7 @@
 import inspect
 from flask import Flask, request, render_template
 from gaffke import gaffke_CI
-from other_bounds import student_t, anderson_bound
+from other_bounds import hoeffding_bound, student_t, anderson_bound
 from flask import Flask, request, render_template, Response, stream_with_context
 import json
 import numpy as np
@@ -9,7 +9,8 @@ import numpy as np
 BOUND_FUNCTIONS = {
     "gaffke": gaffke_CI,
     "student_t": student_t,
-    "anderson": anderson_bound
+    "anderson": anderson_bound,
+    "hoeffding": hoeffding_bound
 }
 app = Flask(__name__)
 application = app
@@ -48,7 +49,14 @@ def boundswithsample_simple():
         sample_val = request.args.get("sample", "")
         confidence_val = float(request.args.get("confidence", "0.95"))
         side_val = request.args.get("side", "lower").strip().lower()
+        min_val = float(request.args.get("min_hoeffding", "0"))
+        max_val = float(request.args.get("max_hoeffding", "1"))
         
+        if bound_type == "hoeffding":
+            bounds = (min_val, max_val)
+        else:
+            bounds = None
+
         sample = [float(x) for x in sample_val.split(",") if x.strip() != ""]
         
         if side_val not in ["lower", "upper"]:
@@ -66,7 +74,8 @@ def boundswithsample_simple():
         args = {
             "x": sample,
             "alpha": 1 - confidence_val,
-            "side": side_val
+            "side": side_val,
+            "bounds": bounds
         }
         valid_args = {
             name: val for name, val in args.items() if name in sig.parameters
