@@ -9,7 +9,6 @@
     <meta name="description"
         content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
 
@@ -124,12 +123,6 @@
             border-left: 1px solid rgba(0, 0, 0, .08);
         }
 
-        /* Align checkboxes with label text */
-        .checkbox-group input[type="checkbox"] {
-            position: relative;
-            top: 2px;
-        }
-
         /* Side-by-side layout for bounds and global settings */
         .bounds-and-settings {
             display: flex;
@@ -155,11 +148,11 @@
             font-weight: 600;
         }
 
-        .bounds-box .checkbox-group {
+        /*.bounds-box .checkbox-group {
             flex-direction: column;
             gap: 0.6rem;
         }
-
+        */
         /* Global settings as a vertical column */
         .global-settings-column {
             display: flex;
@@ -311,11 +304,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
                             </div>
                             <div class="right-side" id="monte-carlo-graph">
                                 <div id="chart-wrap">
-                                    <div id="status-mc" class="muted status">Ready to calculate</div>
+                                    <div id="status-mc" class="muted status">Ready to calculate Gaffke</div>
                                     <div class="row-span-2">
                                         <div id="progress" aria-label="Computation progress">
                                             <div id="progress-bar" role="progressbar" aria-valuemin="0"
@@ -326,10 +318,10 @@
                                     </div>
                                     <canvas id="boundsChart" height="120"></canvas>
                                 </div>
-                            </div>
-
-                            <div class="right-side" id="simple-display" style="display: none;">
-                                <div id="status-simple" class="muted status">Ready to calculate</div>
+                                <div id="simple-display" style="display: none;">
+                                    <div id="status-simple" class="muted status">Ready to calculate other bounds</div>
+                                </div>
+                                <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
                             </div>
                         </div>
                     </form>
@@ -367,6 +359,8 @@
     // Store simple (closed-form) bound results so we can render them cleanly
     // and control layout (one per line).
     let simpleResults = [];
+    // Track per-bound progress for streaming display
+    let boundProgress = {};
 
         function setProgress(pct) {
             const clamped = Math.max(0, Math.min(100, pct));
@@ -646,6 +640,7 @@
 
                         if (msg.type === "start") {
                             totalBatches = Number(msg.points) || 0;
+                            boundProgress[boundType] = { completed: 0, total: totalBatches };
                             getStatusEl(boundType).textContent = `${boundType} running ${totalBatches} batches...`;
                             return;
                         }
@@ -656,10 +651,21 @@
                             chart.data.datasets[upperIndex].data.push({ x: B, y: mean + std });
                             chart.data.datasets[lowerIndex].data.push({ x: B, y: mean - std });
                             chart.update("none");
+
+                            // Stream progress to status box
+                            completedBatches += 1;
+                            const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
+                            setProgress(pct);
+                            getStatusEl(boundType).innerHTML = `
+                                <strong>Progress:</strong> Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
+                            `;
                         }
 
                         if (msg.type === "end") {
-                            getStatusEl(boundType).textContent = `${boundType} complete.`;
+                            // Show final value in status box
+                            getStatusEl(boundType).innerHTML = `
+                                <strong>Final:</strong> mean=${msg.mean !== undefined ? msg.mean.toFixed(4) : 'N/A'} &nbsp; std=${msg.std !== undefined ? msg.std.toFixed(4) : 'N/A'}
+                            `;
                             setProgress(100);
                             // closeStream will decrement activeStreams if needed
                             closeStream(boundType);

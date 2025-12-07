@@ -131,6 +131,8 @@ def boundswithsample_stream():
     def generate():
         yield sse_format({"type": "start", "points": len(Bs)})
 
+        last_mean = None
+        last_std = None
         for idx, B in enumerate(Bs, start=1):
             cur_vals = []
             for _ in range(iterations_per_step):
@@ -143,6 +145,8 @@ def boundswithsample_stream():
 
             mean_val = float(np.mean(cur_vals))
             std_val = float(np.std(cur_vals, ddof=1)) if len(cur_vals) > 1 else 0.0
+            last_mean = mean_val
+            last_std = std_val
 
             yield sse_format({
                 "type": "update",
@@ -151,10 +155,9 @@ def boundswithsample_stream():
                 "mean": mean_val,
                 "std": std_val
             })
-        # Send a final data message with type 'end' so the client onmessage handler
-        # receives it as JSON (consistent with other messages) instead of relying
-        # on a named SSE event which the client doesn't listen for.
-        yield sse_format({"type": "end"})
+        # Send a final data message with type 'end' including the last mean/std
+        # so the client can display the final result.
+        yield sse_format({"type": "end", "mean": last_mean, "std": last_std})
 
     return Response(generate(), mimetype="text/event-stream")
 
