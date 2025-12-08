@@ -9,7 +9,6 @@
     <meta name="description"
         content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
 
@@ -43,6 +42,12 @@
             font-family: monospace;
             font-size: 0.95rem;
             height: 40px;
+        }
+
+        /* Allow status-simple to expand for multiple results */
+        #status-simple {
+            height: auto;
+            min-height: 40px;
         }
 
         #chart-wrap {
@@ -117,6 +122,55 @@
         .segmented label+input+label {
             border-left: 1px solid rgba(0, 0, 0, .08);
         }
+
+        /* Side-by-side layout for bounds and global settings */
+        .bounds-and-settings {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .bounds-box {
+            background: #f3f5f8;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            padding: 1rem;
+            flex-shrink: 0;
+            width: 200px;
+            align-self: flex-start;
+            margin-top: 0;
+        }
+
+        .bounds-box label:first-child {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        /*.bounds-box .checkbox-group {
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        */
+        /* Global settings as a vertical column */
+        .global-settings-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            flex: 1;
+        }
+
+        /* Make .row use grid for left/right layout */
+        .row {
+            display: grid;
+            grid-template-columns: 230px 1fr;   /* Left fixed, right expands */
+            gap: 2rem;
+            align-items: start;
+        }
+        .right-side {
+            margin-top: -100px;   /* adjust this number */
+        }
     </style>
 </head>
 
@@ -143,80 +197,117 @@
             <div class="">
                 <div class="">
                     <form id="bounds-form" autocomplete="off" class="form-grid">
-
-                        <div class="form-section-top">
-                            <h4>Global Settings</h4>
-
-
-                            <div class="form-row-top">
-                                <label class="label" for="side-lower">Bound on Mean:</label>
-                                <div class="segmented" role="tablist" aria-label="Bound on Mean">
-                                    <input type="radio" id="side-lower" name="side" value="lower" {{ 'checked' if
-                                        side_val=='lower' else '' }}>
-                                    <label for="side-lower" role="tab"
-                                        aria-selected="{{ 'true' if side_val=='lower' else 'false' }}">
-                                        Lower Bound
-                                    </label>
-
-                                    <input type="radio" id="side-upper" name="side" value="upper" {{ 'checked' if
-                                        side_val=='upper' else '' }}>
-                                    <label for="side-upper" role="tab"
-                                        aria-selected="{{ 'true' if side_val=='upper' else 'false' }}">
-                                        Upper Bound
-                                    </label>
+                        <div class="bounds-and-settings">
+                            <div class="bounds-box">
+                                <label for="bound-type">Select Bounds:</label>
+                                <div id="bound-checkboxes" class="checkbox-group">
+                                    <label><input type="checkbox" name="bounds" value="gaffke" checked> Gaffke</label>
+                                    <label><input type="checkbox" name="bounds" value="student_t"> Student-t</label>
+                                    <label><input type="checkbox" name="bounds" value="anderson"> Anderson</label>
+                                    <label><input type="checkbox" name="bounds" value="hoeffding"> Hoeffding</label>
                                 </div>
                             </div>
 
+                            <div class="form-section-top" style="flex: 1;">
+                                <h4>Global Settings</h4>
 
-                            <div class="form-row-top">
-                                <label for="confidence">Confidence Level:</label>
-                                <input type="number" step="0.001" min="0.01" max="0.999" name="confidence"
-                                    id="confidence" value="{{ confidence_val }}" required>
-                            </div>
+                                <div class="form-row-top">
+                                    <label class="label" for="side-lower">Bound on Mean:</label>
+                                    <div class="segmented" role="tablist" aria-label="Bound on Mean">
+                                        <input type="radio" id="side-lower" name="side" value="lower" {{ 'checked' if
+                                            side_val=='lower' else '' }}>
+                                        <label for="side-lower" role="tab"
+                                            aria-selected="{{ 'true' if side_val=='lower' else 'false' }}">
+                                            Lower Bound
+                                        </label>
 
+                                        <input type="radio" id="side-upper" name="side" value="upper" {{ 'checked' if
+                                            side_val=='upper' else '' }}>
+                                        <label for="side-upper" role="tab"
+                                            aria-selected="{{ 'true' if side_val=='upper' else 'false' }}">
+                                            Upper Bound
+                                        </label>
+                                    </div>
+                                </div>
 
-                            <div class="form-row-top">
-                                <label for="sample">Sample (comma-separated):</label>
-                                <input type="text" name="sample" id="sample" placeholder="e.g. 1.2, 3.4, 5.6" required>
+                                <div class="form-row-top">
+                                    <label for="confidence">Confidence Level:</label>
+                                    <input type="number" step="0.001" min="0.01" max="0.999" name="confidence"
+                                        id="confidence" value="{{ confidence_val }}" required>
+                                </div>
+
+                                <div class="form-row-top">
+                                    <label for="sample">Sample (comma-separated):</label>
+                                    <input type="text" name="sample" id="sample" placeholder="e.g. 1.2, 3.4, 5.6" required>
+                                </div>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="left-side">
-                                <div class="form-section">
-                                    <h4>Gaffke Parameters</h4>
-                                    <div class="form-row">
-                                        <label for="min_max">Min/Max Support Value:</label>
-                                        <input type="number" step="1" min="0" name="min_max" id="min_max"
-                                            value="{{ min_max_val }}">
-                                    </div>
+                                <div id="gaffke-params" class="bound-params">
+                                    <div class="form-section">
+                                        <h4>Gaffke Parameters</h4>
+                                        <div class="form-row">
+                                            <label for="min_max">Min/Max Support Value:</label>
+                                            <input type="number" step="1" min="0" name="min_max" id="min_max"
+                                                value="{{ min_max_val }}">
+                                        </div>
 
-                                    <div class="form-row">
-                                        <label for="iterations">Monte Carlo Iterations:</label>
-                                        <input type="number" step="1" min="10" name="iterations" id="iterations"
-                                            value="{{ iterations_val }}">
-                                    </div>
+                                        <div class="form-row">
+                                            <label for="iterations">Monte Carlo Iterations:</label>
+                                            <input type="number" step="1" min="10" name="iterations" id="iterations"
+                                                value="{{ iterations_val }}">
+                                        </div>
 
-                                    <div class="form-row">
-                                        <label for="steps">Number of steps in Monte Carlo Plot:
-                                        </label>
-                                        <input type="number" step="1" min="1" name="steps" id="steps"
-                                            value="{{ steps_val }}">
-                                    </div>
+                                        <div class="form-row">
+                                            <label for="steps">Number of steps in Monte Carlo Plot:
+                                            </label>
+                                            <input type="number" step="1" min="1" name="steps" id="steps"
+                                                value="{{ steps_val }}">
+                                        </div>
 
-                                    <div class="form-row">
-                                        <label for="iterations_per_step">Number of repeated trials for each Monte Carlo
-                                            experiment:
-                                        </label>
-                                        <input type="number" step="1" min="1" name="iterations_per_step"
-                                            id="iterations_per_step" value="{{ iterations_per_step_val }}">
+                                        <div class="form-row">
+                                            <label for="iterations_per_step">Number of repeated trials for each Monte Carlo
+                                                experiment:
+                                            </label>
+                                            <input type="number" step="1" min="1" name="iterations_per_step"
+                                                id="iterations_per_step" value="{{ iterations_per_step_val }}">
+                                        </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
+
+                                <div id="student-t-params" class="bound-params">
+                                    <div class="form-section">
+                                        <h4>Student-t Parameters</h4>
+                                        <p class="muted">No additional parameters required</p>
+                                    </div>
+                                </div>
+
+                                <div id="anderson-params" class="bound-params">
+                                    <div class = "form-section">
+                                        <h4>Anderson Parameters</h4>
+                                        <p class="muted">No additional parameters required</p>
+                                    </div>
+                                </div>
+
+                                <div id="hoeffding-params" class="bound-params">
+                                    <div class = "form-section">
+                                        <h4>Hoeffding Parameters</h4>
+                                        <div class="form-row">
+                                            <label for="min_hoeffding">Min Support Value:</label>
+                                            <input type="number" step="1" min="0" name="min_hoeffding"
+                                                id="min_hoeffding" value="{{ min_hoeffding_val }}">
+                                            <label for="max_hoeffding">Max Support Value:</label>
+                                            <input type="number" step="1" min="0" name="max_hoeffding"
+                                                id="max_hoeffding" value="{{ max_hoeffding_val }}">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="right-side" style="width: 90%;">
+                            <div class="right-side" id="monte-carlo-graph">
                                 <div id="chart-wrap">
-                                    <div id="status" class="muted">Ready to calculate</div>
+                                    <div id="status-mc" class="muted status">Ready to calculate Gaffke</div>
                                     <div class="row-span-2">
                                         <div id="progress" aria-label="Computation progress">
                                             <div id="progress-bar" role="progressbar" aria-valuemin="0"
@@ -227,28 +318,32 @@
                                     </div>
                                     <canvas id="boundsChart" height="120"></canvas>
                                 </div>
+                                <div id="simple-display" style="display: none;">
+                                    <div id="status-simple" class="muted status">Ready to calculate other bounds</div>
+                                </div>
+                                <button type="submit" class="primary-btn" id="run-btn">Calculate</button>
                             </div>
                         </div>
-
-
-
                     </form>
                 </div>
-
             </div>
-
-
         </section>
-
-        {% if result %}
-        <div id="single-result">{{ result }}</div>
-        {% endif %}
-
 
     </main>
     <script>
         const form = document.getElementById("bounds-form");
-        const statusEl = document.getElementById("status");
+        
+        const statusEls = {
+            gaffke: document.getElementById("status-mc"),
+            student_t: document.getElementById("status-simple"),
+            anderson: document.getElementById("status-simple"),
+            hoeffding: document.getElementById("status-simple"),
+        };
+
+        function getStatusEl(boundType) {
+            return statusEls[boundType] || document.getElementById("status-simple");
+        }
+
         const runBtn = document.getElementById("run-btn");
 
         // Progress bar refs
@@ -256,6 +351,16 @@
         const progressText = document.getElementById("progress-text");
         let totalBatches = 0;
         let completedBatches = 0;
+    // Track active streaming connections and tasks so the UI can re-enable
+    // the Calculate button reliably when all work finishes.
+    let activeStreams = 0;
+    let streamActive = {};
+    let pendingTasks = 0;
+    // Store simple (closed-form) bound results so we can render them cleanly
+    // and control layout (one per line).
+    let simpleResults = [];
+    // Track per-bound progress for streaming display
+    let boundProgress = {};
 
         function setProgress(pct) {
             const clamped = Math.max(0, Math.min(100, pct));
@@ -272,42 +377,7 @@
         // Chart.js setup: three datasets using {x,y} so fill aligns by x
         const ctx = document.getElementById("boundsChart").getContext("2d");
         const data = {
-            datasets: [
-                // 0: helper upper = mean + std (transparent, still present)
-                {
-                    label: "band-anchor",
-                    data: [],
-                    borderColor: "rgba(0,0,0,0)",
-                    backgroundColor: "rgba(0,0,0,0)",
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    parsing: { xAxisKey: "x", yAxisKey: "y" },
-                    spanGaps: true
-                },
-                // 1: lower = mean - std, fill to dataset 0
-                {
-                    label: "± std",
-                    data: [],
-                    pointRadius: 0,
-                    borderWidth: 0,
-                    fill: { target: 0 },
-                    backgroundColor: "rgba(0, 123, 255, 0.18)",
-                    parsing: { xAxisKey: "x", yAxisKey: "y" },
-                    spanGaps: true
-                },
-                // 2: mean
-                {
-                    label: "mean",
-                    data: [],
-                    tension: 0.2,
-                    pointRadius: 2,
-                    borderWidth: 2,
-                    borderColor: "#007bff",
-                    backgroundColor: "#007bff",
-                    parsing: { xAxisKey: "x", yAxisKey: "y" },
-                    spanGaps: true
-                }
-            ]
+            datasets: []
         };
 
         const chart = new Chart(ctx, {
@@ -320,8 +390,10 @@
                 plugins: {
                     legend: {
                         labels: {
-                            // hide the helper from legend
-                            filter: (item) => item.datasetIndex !== 0
+                            filter: (item) => {
+                            // item.text is the label shown in the legend
+                            return item.text !== '' && item.text != null;
+                            }
                         }
                     },
                     tooltip: { enabled: true }
@@ -342,27 +414,115 @@
             }
         });
 
-        let es = null;
+        // Remember how many base datasets the chart starts with so we can
+        // remove any datasets added by previous runs when resetting.
+        const BASE_DATASET_COUNT = chart.data.datasets.length;
 
-        function closeStream() {
-            if (es) es.close();
-            es = null;
-            runBtn.disabled = false;
+        const streams = {};
+
+        function closeStream(boundType) {
+            if (streams[boundType]) {
+                try { streams[boundType].close(); } catch (e) {}
+                delete streams[boundType];
+            }
+            if (streamActive[boundType]) {
+                activeStreams = Math.max(0, activeStreams - 1);
+                streamActive[boundType] = false;
+            }
         }
 
+        function markTaskDone(boundType) {
+            // Called when a bound (stream or fetch) completes or errors.
+            pendingTasks = Math.max(0, pendingTasks - 1);
+            if (pendingTasks === 0 && activeStreams === 0) {
+                runBtn.disabled = false;
+            }
+        }
+
+
         function resetChart() {
+            // Remove any datasets added after initial page load so the legend
+            // doesn't accumulate entries across runs.
+            if (chart.data.datasets.length > BASE_DATASET_COUNT) {
+                chart.data.datasets.splice(BASE_DATASET_COUNT);
+            }
+            // Clear data for remaining base datasets
             for (const ds of chart.data.datasets) ds.data = [];
             chart.update();
         }
 
+        function resetStatus() {
+            // Reset status UI areas to initial text
+            try {
+                document.getElementById("status-mc").innerHTML = "Ready to calculate";
+            } catch (e) {}
+            try {
+                simpleResults = [];
+                document.getElementById("status-simple").innerHTML = "Ready to calculate";
+            } catch (e) {}
+        }
+
+        function addSimpleResult(boundType, text, isError=false) {
+            // text is a string (e.g. numeric value formatted). Collect results
+            // and render comma-separated so the results box stays compact.
+            const formatted = isError ? `${boundType} Error: ${text}` : `${boundType}: ${text}`;
+            simpleResults.push(formatted);
+            document.getElementById("status-simple").innerHTML = simpleResults.join(", ");
+        }
+
+        const paramSelections = {
+            "gaffke": document.getElementById("gaffke-params"),
+            "student_t": document.getElementById("student-t-params"),
+            "anderson": document.getElementById("anderson-params"),
+            "hoeffding": document.getElementById("hoeffding-params"),
+        };
+
+        const gaffkeWrap = document.getElementById("monte-carlo-graph");
+        const simpleWrap = document.getElementById("simple-display");
+
+        function showParams(selectedBounds) {
+            for (const key in paramSelections) {
+                paramSelections[key].style.display = selectedBounds.includes(key) ? "block" : "none";
+            }
+
+            // Show the correct wrapper
+            document.getElementById("monte-carlo-graph").style.display = selectedBounds.includes("gaffke") ? "block" : "none";
+            document.getElementById("simple-display").style.display = selectedBounds.some(b => b !== "gaffke") ? "block" : "none";
+        }
+
+        document.querySelectorAll('input[name="bounds"]').forEach(cb => {
+            cb.addEventListener("change", () => {
+                const selectedBounds = Array.from(document.querySelectorAll('input[name="bounds"]:checked'))
+                                            .map(cb => cb.value);
+                showParams(selectedBounds);
+            });
+        });
+
+        showParams(Array.from(document.querySelectorAll('input[name="bounds"]:checked'))
+                    .map(cb => cb.value));
+
         form.addEventListener("submit", function (e) {
             e.preventDefault();
-            closeStream();
+            Object.keys(streams).forEach(bt => closeStream(bt));
             resetChart();
             resetProgress();
+            resetStatus();
 
-            statusEl.textContent = "Starting...";
+            getStatusEl("gaffke").textContent = "Starting...";
             runBtn.disabled = true;
+
+            const selectedBounds = Array.from(document.querySelectorAll('input[name="bounds"]:checked')).map(cb => cb.value);
+            
+            if (selectedBounds.length === 0) {
+                alert("Please select at least one bound to run.");
+                runBtn.disabled = false;
+                return;
+            }
+
+            // Initialize task counters for this run
+            pendingTasks = selectedBounds.length;
+            activeStreams = 0;
+            streamActive = {};
 
             const sample = document.getElementById("sample").value.trim();
             const confidence = document.getElementById("confidence").value.trim();
@@ -372,68 +532,213 @@
             const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
             const min_max = document.getElementById("min_max").value.trim();
 
-            const qs = new URLSearchParams({ sample, confidence, iterations, side, steps, iterations_per_step, min_max });
-            const url = `/boundswithsample/stream?${qs.toString()}`;
+            let results = [];
+            
+            selectedBounds.forEach(boundType => {
+                const qs = new URLSearchParams({
+                    sample,
+                    confidence,
+                    iterations,
+                    steps,
+                    iterations_per_step,
+                    min_max,
+                    side
+                });
+                if (boundType === "hoeffding") {
+                    const min_hoeffding = document.getElementById("min_hoeffding").value.trim();
+                    const max_hoeffding = document.getElementById("max_hoeffding").value.trim();
+                    qs.set("min_hoeffding", min_hoeffding);
+                    qs.set("max_hoeffding", max_hoeffding);
+                }
+                const url = `/boundswithsample/${boundType === "gaffke" ? "stream" : "simple"}?${qs.toString()}&bound=${boundType}`;
 
-            es = new EventSource(url);
+                const BOUND_COLORS = {
+                    gaffke:    "#7C3AED", // purple
+                    anderson:  "#0891B2", // teal
+                    student_t: "#DC2626", // red
+                    hoeffding: "#2D6CDF", // blue
+                };
 
-            es.onmessage = (evt) => {
-                if (!evt.data) return;
-                const msg = JSON.parse(evt.data);
+                const baseColor = BOUND_COLORS[boundType] || "#444444";
 
-                if (msg.type === "error") {
-                    statusEl.textContent = `Error: ${msg.message}`;
-                    setProgress(0);
-                    closeStream();
-                    return;
+                // For closed-form bounds (student_t, anderson, etc.) we only add
+                // a single 'mean' dataset. For Gaffke (Monte Carlo) we add three
+                // datasets (mean, +std, -std) because it streams updates with
+                // mean and std values.
+                let meanIndex, upperIndex, lowerIndex;
+                if (boundType === "gaffke") {
+                    meanIndex = chart.data.datasets.push({
+                        label: `${boundType} (mean)`,
+                        data: [],
+                        tension: 0.2,
+                        borderColor: baseColor,
+                        backgroundColor: baseColor + "33",
+                        pointRadius: 1.5,
+                        borderWidth: 2,
+                    }) - 1;
+                    upperIndex = chart.data.datasets.push({
+                        label: `${boundType} (±std)`,
+                        data: [],
+                        tension: 0.2,
+                        borderColor: baseColor,
+                        borderDash: [4, 2],
+                        pointRadius: 0,
+                        borderWidth: 1,
+                    }) - 1;
+                    lowerIndex = chart.data.datasets.push({
+                        label: '', // same label for legend grouping
+                        data: [],
+                        tension: 0.2,
+                        borderColor: baseColor,
+                        borderDash: [4, 2],
+                        pointRadius: 0,
+                        borderWidth: 1,
+
+                        fill: {
+                            target: upperIndex,
+                            above: baseColor + "22", 
+                            below: baseColor + "22", 
+                        }
+                    }) - 1;
+                } else {
+                    // Closed-form - only show a single marker/line in the legend
+                    meanIndex = chart.data.datasets.push({
+                        label: `${boundType}`,
+                        data: [],
+                        tension: 0.2,
+                        borderColor: baseColor,
+                        backgroundColor: baseColor + "33",
+                        pointRadius: 2,
+                        borderWidth: 2,
+                    }) - 1;
+                    upperIndex = null;
+                    lowerIndex = null;
                 }
 
-                if (msg.type === "start") {
-                    totalBatches = Number(msg.points) || 0;
-                    statusEl.textContent = `Running ${totalBatches} batches...`;
-                    if (typeof msg.lo === "number" && typeof msg.hi === "number" && msg.lo < msg.hi) {
-                        const pad = (msg.hi - msg.lo) * 0.05;
-                        chart.options.scales.y.suggestedMin = msg.lo - pad;
-                        chart.options.scales.y.suggestedMax = msg.hi + pad;
-                        chart.update();
-                    }
-                    return;
+                if (boundType === "gaffke") {
+                    streams[boundType] = new EventSource(url);
+                    streamActive[boundType] = true;
+                    activeStreams++;
+
+                    streams[boundType].onmessage = (evt) => {
+                        if (!evt.data) return;
+                        let msg;
+                        try {
+                            msg = JSON.parse(evt.data);
+                        } catch (e) {
+                            console.error("Malformed SSE data:", evt.data);
+                            return; // skip this event
+                        }
+
+                        if (msg.type === "error") {
+                            getStatusEl(boundType).textContent = `${boundType} Error: ${msg.message}`;
+                            setProgress(0);
+                            closeStream(boundType);
+                            runBtn.disabled= false;
+                            return;
+                        }
+
+                        if (msg.type === "start") {
+                            totalBatches = Number(msg.points) || 0;
+                            boundProgress[boundType] = { completed: 0, total: totalBatches };
+                            getStatusEl(boundType).textContent = `${boundType} running ${totalBatches} batches...`;
+                            return;
+                        }
+
+                        if (msg.type === "update") {
+                            const { B, mean, std } = msg;
+                            chart.data.datasets[meanIndex].data.push({ x: B, y: mean });
+                            chart.data.datasets[upperIndex].data.push({ x: B, y: mean + std });
+                            chart.data.datasets[lowerIndex].data.push({ x: B, y: mean - std });
+                            chart.update("none");
+
+                            // Stream progress to status box
+                            completedBatches += 1;
+                            const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
+                            setProgress(pct);
+                            getStatusEl(boundType).innerHTML = `
+                                <strong>Progress:</strong> Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
+                            `;
+                        }
+
+                        if (msg.type === "end") {
+                            // Show final value in status box
+                            getStatusEl(boundType).innerHTML = `
+                                <strong>Final:</strong> mean=${msg.mean !== undefined ? msg.mean.toFixed(4) : 'N/A'} &nbsp; std=${msg.std !== undefined ? msg.std.toFixed(4) : 'N/A'}
+                            `;
+                            setProgress(100);
+                            // closeStream will decrement activeStreams if needed
+                            closeStream(boundType);
+                            // mark this bound's task as done (will re-enable button when
+                            // all pendingTasks and activeStreams reach zero)
+                            markTaskDone(boundType);
+                        }
+                    };
+
+                    streams[boundType].onerror = (ev) => {
+                        // If the EventSource has closed normally, don't treat it as an error
+                        // that should alarm the user. Otherwise show an error message.
+                        try {
+                            const state = streams[boundType] && streams[boundType].readyState;
+                            if (state === EventSource.CLOSED) {
+                                getStatusEl(boundType).innerHTML += `<br><strong>${boundType}</strong> stream closed.`;
+                            } else {
+                                getStatusEl(boundType).innerHTML += `<br><strong>${boundType} stream error.</strong>`;
+                            }
+                        } catch (e) {
+                            // Fallback: show a generic error
+                            getStatusEl(boundType).innerHTML += `<br><strong>${boundType} stream error.</strong>`;
+                        }
+                        // Ensure the stream is closed and activeStreams is decremented
+                        closeStream(boundType);
+                        // This stream's work is considered done for pendingTasks
+                        markTaskDone(boundType);
+                    };
+                } else {
+                    // Simple (non-streaming) bound
+                    fetch(url)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error) {
+                                addSimpleResult(boundType, data.error, true);
+                            } else {
+                                // Plot closed-form bounds as a horizontal line across the
+                                // Monte Carlo x-range so users can compare them to the
+                                // streamed Gaffke curve. Determine x-range from existing
+                                // data if available, otherwise from the iterations input.
+                                function getPlotRange() {
+                                    // collect all x values present in datasets
+                                    const xs = [];
+                                    for (const ds of chart.data.datasets) {
+                                        for (const pt of ds.data) {
+                                            if (pt && typeof pt.x !== 'undefined') xs.push(Number(pt.x));
+                                        }
+                                    }
+                                    if (xs.length > 0) {
+                                        return [Math.min(...xs), Math.max(...xs)];
+                                    }
+                                    const maxIter = parseInt(iterations) || 1;
+                                    return [1, Math.max(1, maxIter)];
+                                }
+
+                                const [minX, maxX] = getPlotRange();
+                                // Create two points so Chart.js connects them as a horizontal line
+                                chart.data.datasets[meanIndex].data.push({ x: minX, y: data.value });
+                                chart.data.datasets[meanIndex].data.push({ x: maxX, y: data.value });
+                                chart.update();
+                                addSimpleResult(boundType, data.value.toFixed(4));
+                            }
+                            setProgress(100);
+                            // Mark this closed-form bound as finished
+                            markTaskDone(boundType);
+                        })
+                        .catch(err => {
+                            addSimpleResult(boundType, String(err), true);
+                            markTaskDone(boundType);
+                        });
                 }
-
-                if (msg.type === "update") {
-                    const B = msg.B;
-                    const mean = msg.mean;
-                    const std = msg.std;
-
-                    // push as {x, y} on all three datasets
-                    chart.data.datasets[0].data.push({ x: B, y: mean + std }); // upper
-                    chart.data.datasets[1].data.push({ x: B, y: mean - std }); // lower
-                    chart.data.datasets[2].data.push({ x: B, y: mean });       // mean
-                    chart.update();
-
-                    completedBatches += 1;
-                    const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
-                    setProgress(pct);
-
-                    statusEl.innerHTML = `
-            <strong>Progress:</strong> Monte Carlo Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
-          `;
-                }
-            };
-
-            es.addEventListener("end", () => {
-                setProgress(100);
-
-                // Replace “Progress:” with “Final:” for the last line
-                const current = statusEl.innerHTML.replace("Progress:", "Final:");
-                statusEl.innerHTML = current;
-
-                closeStream();
             });
-            es.onerror = () => {
-                statusEl.innerHTML += `<br><strong>Stream error.</strong>`;
-                closeStream();
-            };
+            
         });
     </script>
 </body>

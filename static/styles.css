@@ -218,6 +218,36 @@ section h2 {
     padding: 1rem
 }
 
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 !important;
+    font-weight: normal !important;
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+    width: auto;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.primary-btn {
+    width: 50% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 .rows {
     display: grid;
     gap: .8rem
@@ -527,7 +557,7 @@ select:focus {
     margin-left: 2rem;
 }
 
-.right-side #status,
+.right-side .status,
 .right-side .row-span-2 {
     width: 90%;
     margin: 0 3% 0 7%;
@@ -738,7 +768,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-#status {
+.status {
     padding: 16px 20px;
     background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     border-radius: 12px;
@@ -856,6 +886,76 @@ strong {
     top: 20px;
     align-self: start;
 }
+
+/* Simple Result Panel */
+#simple-display {
+  display: block; /* toggled by JS anyway */
+  margin-top: 1rem;
+}
+
+#simple-result {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+#simple-result h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+#simple-result .result {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 0.5rem;
+}
+
+/* Status for Simple Result */
+#simple-display .status {
+  padding: 6px 10px;
+  background-color: #f1f1f1;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+/* Optional: Match progress bar style */
+#simple-display #progress {
+  position: relative;
+  margin-top: 8px;
+  height: 20px;
+  background: #e6e6e6;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+#simple-display #progress-bar {
+  height: 100%;
+  background: #007bff;
+  transition: width 120ms linear;
+  width: 0%;
+}
+
+#simple-display #progress-text {
+  position: absolute;
+  top: -22px;
+  right: 0;
+  font-size: 0.9rem;
+  color: #333;
+  font-family: monospace;
+}
+
+
 
 @media (max-width: 1024px) {
     .left-side {
