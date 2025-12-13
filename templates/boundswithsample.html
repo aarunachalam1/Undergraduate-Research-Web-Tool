@@ -190,8 +190,8 @@
     </nav>
 
     <main class="container">
-        <h2 id="download-heading">Gaffke Bound</h2>
-        <p class="section-note">Gaffke bound calculator</p>
+        <h2 id="download-heading">Unknown Sample Bound Explorer</h2>
+        <p class="section-note">Compare the results of various bounds where the support is unknown</p>
         <section class="card calculator">
 
             <div class="">
@@ -296,27 +296,29 @@
                                         <h4>Hoeffding Parameters</h4>
                                         <div class="form-row">
                                             <label for="min_hoeffding">Min Support Value:</label>
-                                            <input type="number" step="1" min="0" name="min_hoeffding"
+                                            <input type="number" step="1" min="0" name="min_hoeffding" required
                                                 id="min_hoeffding" value="{{ min_hoeffding_val }}">
                                             <label for="max_hoeffding">Max Support Value:</label>
-                                            <input type="number" step="1" min="0" name="max_hoeffding"
+                                            <input type="number" step="1" min="0" name="max_hoeffding" required
                                                 id="max_hoeffding" value="{{ max_hoeffding_val }}">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="right-side" id="monte-carlo-graph">
-                                <div id="chart-wrap">
-                                    <div id="status-mc" class="muted status">Ready to calculate Gaffke</div>
-                                    <div class="row-span-2">
-                                        <div id="progress" aria-label="Computation progress">
-                                            <div id="progress-bar" role="progressbar" aria-valuemin="0"
-                                                aria-valuemax="100" aria-valuenow="0">
+                            <div class="right-side">
+                                <div id="monte-carlo-graph">
+                                    <div id="chart-wrap">
+                                        <div id="status-mc" class="muted status">Ready to calculate Gaffke</div>
+                                        <div class="row-span-2">
+                                            <div id="progress" aria-label="Computation progress">
+                                                <div id="progress-bar" role="progressbar" aria-valuemin="0"
+                                                    aria-valuemax="100" aria-valuenow="0">
+                                                </div>
+                                                <div id="progress-text">0%</div>
                                             </div>
-                                            <div id="progress-text">0%</div>
                                         </div>
+                                        <canvas id="boundsChart" height="120"></canvas>
                                     </div>
-                                    <canvas id="boundsChart" height="120"></canvas>
                                 </div>
                                 <div id="simple-display" style="display: none;">
                                     <div id="status-simple" class="muted status">Ready to calculate other bounds</div>
@@ -488,6 +490,10 @@
             // Show the correct wrapper
             document.getElementById("monte-carlo-graph").style.display = selectedBounds.includes("gaffke") ? "block" : "none";
             document.getElementById("simple-display").style.display = selectedBounds.some(b => b !== "gaffke") ? "block" : "none";
+            
+            const hoeffdingSelected = selectedBounds.includes("hoeffding");
+            document.getElementById("min_hoeffding").required = hoeffdingSelected;
+            document.getElementById("max_hoeffding").required = hoeffdingSelected;
         }
 
         document.querySelectorAll('input[name="bounds"]').forEach(cb => {
@@ -532,6 +538,10 @@
             const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
             const min_max = document.getElementById("min_max").value.trim();
 
+            const maxIter = parseInt(iterations) || 1000;
+            chart.options.scales.x.max = maxIter;
+            chart.update();
+            
             let results = [];
             
             selectedBounds.forEach(boundType => {
@@ -706,22 +716,10 @@
                                 // Monte Carlo x-range so users can compare them to the
                                 // streamed Gaffke curve. Determine x-range from existing
                                 // data if available, otherwise from the iterations input.
-                                function getPlotRange() {
-                                    // collect all x values present in datasets
-                                    const xs = [];
-                                    for (const ds of chart.data.datasets) {
-                                        for (const pt of ds.data) {
-                                            if (pt && typeof pt.x !== 'undefined') xs.push(Number(pt.x));
-                                        }
-                                    }
-                                    if (xs.length > 0) {
-                                        return [Math.min(...xs), Math.max(...xs)];
-                                    }
-                                    const maxIter = parseInt(iterations) || 1;
-                                    return [1, Math.max(1, maxIter)];
-                                }
+                                
 
-                                const [minX, maxX] = getPlotRange();
+                                const maxX = parseInt(iterations) || iterations;
+                                const minX = 1
                                 // Create two points so Chart.js connects them as a horizontal line
                                 chart.data.datasets[meanIndex].data.push({ x: minX, y: data.value });
                                 chart.data.datasets[meanIndex].data.push({ x: maxX, y: data.value });
