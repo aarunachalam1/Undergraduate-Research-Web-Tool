@@ -33,26 +33,26 @@
 
             <div class="panel rows">
                 <div class="row">
-                    <div class="label">General Properties</div>
+                    <div class="label">Gaffke Bound Code</div>
                     <div class="group">
                         <details class="accordion" open>
                             <summary>Python code
                                 <a class="chip"
-                                    href="https://raw.githubusercontent.com/dd2912/bounds/refs/heads/main/python/gaffke.py"
-                                    download="gaffke.py">Download</a>
+                                    href="{{ url_for(
+                                        'download_proxy',
+                                        url=url_for('static', filename='code/gaffke_code.py', _external=True)
+                                    )}}"
+                                    download>
+                                    Download
+                                </a>
                             </summary>
                             <div class="list" style="margin-top:.6rem">
                                 <div class="entry">
                                     <div>
-                                        <div class="title">Core utilities & helpers</div>
-                                        <div class="meta">Vectorized primitives, input validation, test fixtures</div>
+                                        <div class="meta">Code for calculating the Monte Carlo Gaffke Bound</div>
                                     </div>
 
                                 </div>
-                                <pre class="line-numbers"><code class="language-python">def validate_input(data):
-    if not isinstance(data, list):
-        raise ValueError("Data must be a list")
-    return [float(x) for x in data]</code></pre>
                         </details>
 
                         <details class="accordion">

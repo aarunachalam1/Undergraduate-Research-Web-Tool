@@ -1,8 +1,9 @@
 import inspect
-from flask import Flask, request, render_template
+import io
+from flask import Flask, abort, request, render_template, jsonify, send_file, Response, stream_with_context
+import requests
 from gaffke import gaffke_CI
 from other_bounds import hoeffding_bound, student_t, anderson_bound
-from flask import Flask, request, render_template, Response, stream_with_context
 import json
 import numpy as np
 
@@ -19,8 +20,7 @@ application = app
 def index():
     return render_template("index.html", css_file="styles.css")
 
-
-# your existing endpoint that renders the page
+#
 @app.route("/boundswithsample", methods=["GET"])
 def boundswithsample():
     # defaults for the form
@@ -88,8 +88,6 @@ def boundswithsample_simple():
     except Exception as e:
         return {"error": str(e)}
 
-    
-
 @app.route("/boundswithsample/stream")
 def boundswithsample_stream():
     """
@@ -155,12 +153,181 @@ def boundswithsample_stream():
                 "mean": mean_val,
                 "std": std_val
             })
-        # Send a final data message with type 'end' including the last mean/std
-        # so the client can display the final result.
+
         yield sse_format({"type": "end", "mean": last_mean, "std": last_std})
 
     return Response(generate(), mimetype="text/event-stream")
 
+@app.route("/sample_dist")
+def sample_dist():
+    dist = request.args.get("dist", "uniform")
+    num_samples = int(request.args.get("num_samples", 20))
+    num_experiments = int(request.args.get("num_experiments", 1))
+    
+    if dist == "uniform":
+        a = float(request.args.get("a", 0))
+        b = float(request.args.get("b", 1))
+        experiments = []
+        for _ in range(num_experiments):
+            vals = list(map(float, np.round(np.random.uniform(a, b, num_samples), 6)))
+            experiments.append(vals)
+    elif dist == "binomial":
+        n = int(request.args.get("n", 10))
+        p = float(request.args.get("p", 0.5))
+        experiments = []
+        for _ in range(num_experiments):
+            vals = list(map(float, np.random.binomial(n, p, num_samples)))
+            experiments.append(vals)
+    elif dist == "beta":
+        alpha_param = float(request.args.get("alpha", 1))
+        beta_param = float(request.args.get("beta", 1))
+        experiments = []
+        for _ in range(num_experiments):
+            vals = list(map(float, np.round(np.random.beta(alpha_param, beta_param, num_samples), 6)))
+            experiments.append(vals)
+    else:
+        return jsonify({"error": "Unknown distribution"}), 400
+    
+    if num_experiments == 1:
+        return jsonify({"values": experiments[0]})
+    else:
+        return jsonify({"experiments": experiments})
+
+# Renders the sample from distribution page
+@app.route("/samplefromdist", methods=["GET"])
+def samplefromdist():
+    return render_template(
+        "samplefromdist.html",
+        css_file="samplefromdist.css",
+        side_val="lower",
+        confidence_val=0.95,
+        iterations_val=1000,
+        steps_val=10,
+        iterations_per_step_val=1,
+        min_max_val=0,
+        min_hoeffding_val=0,
+        max_hoeffding_val=1
+    )
+
+@app.route("/samplefromdist/stream")
+def samplefromdist_stream():
+
+    try:
+        # New parameters: sample_sizes (comma-separated ints) and num_repeats (repeats per size)
+        sample_sizes_str = request.args.get("sample_sizes", "").strip()
+        num_repeats = int(request.args.get("num_repeats", request.args.get("num-samples", 1)))
+        dist = request.args.get("dist", "uniform").strip().lower()
+        # distribution params
+        a = float(request.args.get("a", 0))
+        b = float(request.args.get("b", 1))
+        n = int(request.args.get("n", 10))
+        p = float(request.args.get("p", 0.5))
+
+        bound_type = request.args.get("bound", "gaffke").strip().lower()
+        confidence = float(request.args.get("confidence", 0.95))
+        iterations = int(request.args.get("iterations", 1000))
+        min_max = float(request.args.get("min_max", 0))
+        side = request.args.get("side", "lower").lower()
+        min_hoeffding = float(request.args.get("min_hoeffding", 0))
+        max_hoeffding = float(request.args.get("max_hoeffding", 1))
+
+        if side not in ["lower", "upper"]:
+            side = "lower"
+
+        # Parse sample sizes
+        if sample_sizes_str:
+            sample_sizes = [int(x) for x in sample_sizes_str.split(",") if x.strip()]
+        else:
+            # Fallback to single sample size param
+            single_size = request.args.get("sample_size") or request.args.get("sample-size")
+            sample_sizes = [int(single_size)] if single_size else []
+
+        if not sample_sizes:
+            raise ValueError("No sample sizes provided.")
+
+        if bound_type not in BOUND_FUNCTIONS:
+            raise ValueError(f"Unknown bound type: {bound_type}")
+
+    except Exception as e:
+        def err_stream():
+            yield sse_format({"type": "error", "message": str(e)})
+            yield sse_format({"type": "end"})
+        return Response(stream_with_context(err_stream()), mimetype="text/event-stream")
+
+    @stream_with_context
+    def generate():
+        # Calculate the true mean of the distribution
+        true_mean = None
+        if dist == "uniform":
+            true_mean = (a + b) / 2
+        elif dist == "binomial":
+            true_mean = n * p
+        elif dist == "beta":
+            alpha_param = float(request.args.get("alpha", 1))
+            beta_param = float(request.args.get("beta", 1))
+            true_mean = alpha_param / (alpha_param + beta_param)
+        
+        yield sse_format({"type": "start", "points": len(sample_sizes), "true_mean": true_mean})
+
+        last_mean = None
+        last_std = None
+        bound_func = BOUND_FUNCTIONS[bound_type]
+        sig = inspect.signature(bound_func)
+
+        for idx, s in enumerate(sample_sizes, start=1):
+            bound_vals_for_size = []
+            for rep in range(num_repeats):
+                if dist == "uniform":
+                    sample_vals = list(map(float, np.round(np.random.uniform(a, b, s), 6)))
+                elif dist == "binomial":
+                    sample_vals = list(map(float, np.random.binomial(n, p, s)))
+                elif dist == "beta":
+                    alpha_param = float(request.args.get("alpha", 1))
+                    beta_param = float(request.args.get("beta", 1))
+                    sample_vals = list(map(float, np.round(np.random.beta(alpha_param, beta_param, s), 6)))
+                else:
+                    yield sse_format({"type": "error", "message": f"Unknown distribution: {dist}"})
+                    continue
+
+                try:
+                    if bound_type == "gaffke":
+                        val = gaffke_CI(x=sample_vals, conf=confidence, B=iterations, side=side, extrema=min_max)
+                    else:
+                        bounds = (min_hoeffding, max_hoeffding) if bound_type == "hoeffding" else None
+                        args = {
+                            "x": sample_vals,
+                            "alpha": 1 - confidence,
+                            "side": side,
+                            "bounds": bounds
+                        }
+                        valid_args = { name: v for name, v in args.items() if name in sig.parameters }
+                        val = bound_func(**valid_args)
+                    bound_vals_for_size.append(float(val))
+                except Exception as e:
+                    yield sse_format({"type": "error", "message": str(e)})
+                    continue
+
+            if not bound_vals_for_size:
+                mean_val = 0.0
+                std_val = 0.0
+            else:
+                mean_val = float(np.mean(bound_vals_for_size))
+                std_val = float(np.std(bound_vals_for_size, ddof=1)) if len(bound_vals_for_size) > 1 else 0.0
+                last_mean = mean_val
+                last_std = std_val
+
+            yield sse_format({
+                "type": "update",
+                "idx": idx,
+                "experiment_num": idx,
+                "sample_size": int(s),
+                "mean": mean_val,
+                "std": std_val
+            })
+
+        yield sse_format({"type": "end", "mean": last_mean, "std": last_std})
+
+    return Response(generate(), mimetype="text/event-stream")
 
 @app.route("/code_snippets", methods=["GET"])
 def code_snippets():
@@ -173,6 +340,26 @@ def tools():
 @app.route("/publications", methods=["GET"])
 def publications():
     return render_template("publications.html", css_file="styles.css")
+
+@app.route("/download_proxy")
+def download_proxy():
+    url = request.args.get("url", "").strip()
+    if not (url.startswith("http://") or url.startswith("https://")):
+        abort(400, "Invalid URL")
+    try:
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+    except Exception as e:
+        abort(502, f"Upstream fetch failed: {e}")
+
+    filename = url.split("/")[-1] or "download.txt"
+    return send_file(
+        io.BytesIO(r.content),
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/octet-stream",
+        max_age=0
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)

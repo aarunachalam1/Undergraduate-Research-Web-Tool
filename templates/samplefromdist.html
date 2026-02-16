@@ -8,20 +8,13 @@
     <title>Bounds on the Mean</title>
     <meta name="description"
         content="A clean, modern site for code, tools, and papers on bounding the mean under distributional assumptions." />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='samplefromdist.css') }}" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/line-numbers/prism-line-numbers.css" />
 
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /*body {
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            margin: 24px;
-        }*/
-
-
-
         form label {
             font-weight: 600;
         }
@@ -30,10 +23,6 @@
         form select {
             padding: 6px 8px;
         }
-
-        /*.row-span-2 {
-            grid-column: 1 / -1;
-        }*/
 
         #status {
             padding: 6px 10px;
@@ -44,7 +33,6 @@
             height: 40px;
         }
 
-        /* Allow status-simple to expand for multiple results */
         #status-simple {
             height: auto;
             min-height: 40px;
@@ -59,7 +47,6 @@
             padding: 8px 12px;
         }
 
-        /* Progress bar */
         #progress {
             position: relative;
             margin-top: 12px;
@@ -148,11 +135,7 @@
             font-weight: 600;
         }
 
-        /*.bounds-box .checkbox-group {
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-        */
+        
         /* Global settings as a vertical column */
         .global-settings-column {
             display: flex;
@@ -169,7 +152,7 @@
             align-items: start;
         }
         .right-side {
-            margin-top: -100px;   /* adjust this number */
+            margin-top: 0;
         }
     </style>
 </head>
@@ -186,14 +169,14 @@
                 <a href="{{ url_for('code_snippets') }}">Downloadable Code</a>
                 <a href="{{ url_for('tools') }}">Interactive Tools</a>
                 <a href="{{ url_for('publications') }}">Related Publications</a>
-                <a href="{{ url_for('samplefromdist') }}">Sample & Compare Bounds</a>
+                <a href="{{ url_for('boundswithsample') }}">Bounds with Sample Data</a>
             </div>
         </div>
     </nav>
 
     <main class="container">
         <h2 id="download-heading">Unknown Support Bound Explorer</h2>
-        <p class="section-note">Compare the results of various bounds where the support is unknown</p>
+        <p class="section-note">Compare the results of various bounds, where the graph shows the bound value averaged over a number of repetitions of each sample size.</p>
         <section class="card calculator">
 
             <div class="">
@@ -211,36 +194,64 @@
                             </div>
 
                             <div class="form-section-top" style="flex: 1;">
-                                <h4>Global Settings</h4>
-
+                                <h4>Distribution & Global Settings</h4>
                                 <div class="form-row-top">
-                                    <label class="label" for="side-lower">Bound on Mean:</label>
-                                    <div class="segmented" role="tablist" aria-label="Bound on Mean">
-                                        <input type="radio" id="side-lower" name="side" value="lower" {{ 'checked' if
-                                            side_val=='lower' else '' }}>
-                                        <label for="side-lower" role="tab"
-                                            aria-selected="{{ 'true' if side_val=='lower' else 'false' }}">
-                                            Lower Bound
-                                        </label>
-
-                                        <input type="radio" id="side-upper" name="side" value="upper" {{ 'checked' if
-                                            side_val=='upper' else '' }}>
-                                        <label for="side-upper" role="tab"
-                                            aria-selected="{{ 'true' if side_val=='upper' else 'false' }}">
-                                            Upper Bound
-                                        </label>
-                                    </div>
+                                    <label for="dist-type">Distribution:</label>
+                                    <select id="dist-type" name="dist-type">
+                                        <option value="uniform">Uniform</option>
+                                        <option value="binomial">Binomial</option>
+                                        <option value="beta">Beta</option>
+                                    </select>
+                                    <label for="num-samples">Number of Repeats (per size):</label>
+                                    <input type="number" step="1" min="1" id="num-samples" value="1">
                                 </div>
-
+                                <div class="form-row-top" id="uniform-params">
+                                    <label for="uniform-a">Uniform min (a):</label>
+                                    <input type="number" step="0.01" id="uniform-a" value="0">
+                                    <label for="uniform-b">Uniform max (b):</label>
+                                    <input type="number" step="0.01" id="uniform-b" value="1">
+                                </div>
+                                <div class="form-row-top" id="binomial-params" style="display:none;">
+                                    <label for="binomial-n">Binomial n (trials):</label>
+                                    <input type="number" step="1" min="1" id="binomial-n" value="10">
+                                    <label for="binomial-p">Binomial p (success probability):</label>
+                                    <input type="number" step="0.01" min="0" max="1" id="binomial-p" value="0.5">
+                                </div>
+                                <div class="form-row-top" id="beta-params" style="display: none;">
+                                    <label for="beta-alpha">Alpha:</label>
+                                    <input type="number" step="0.01" id="beta-alpha" value="1">
+                                    <label for="beta-beta">Beta:</label>
+                                    <input type="number" step="0.01" id="beta-beta" value="1">
+                                </div>
                                 <div class="form-row-top">
+                                    <label for="sample-size">Sample Size(s) (comma-separated):</label>
+                                    <input type="text" id="sample-size" value="20">
                                     <label for="confidence">Confidence Level:</label>
                                     <input type="number" step="0.001" min="0.01" max="0.999" name="confidence"
                                         id="confidence" value="{{ confidence_val }}" required>
                                 </div>
-
                                 <div class="form-row-top">
-                                    <label for="sample">Sample (comma-separated):</label>
-                                    <input type="text" name="sample" id="sample" placeholder="e.g. 1.2, 3.4, 5.6" required>
+                                    <button type="button" class="primary-btn" id="sample-btn">Sample</button>
+                                </div>
+                                <div class="form-row-top">
+                                    <label class="label" for="side-lower">Bound on Mean:</label>
+                                    <div class="segmented" role="tablist" aria-label="Bound on Mean">
+                                        <input type="radio" id="side-lower" name="side" value="lower" checked>
+                                        <label for="side-lower" role="tab"
+                                            aria-selected="true">
+                                            Lower Bound
+                                        </label>
+
+                                        <input type="radio" id="side-upper" name="side" value="upper">
+                                        <label for="side-upper" role="tab"
+                                            aria-selected="false">
+                                            Upper Bound
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-row-top">
+                                    <label for="sample">Sampled Data:</label>
+                                    <textarea id="sample" name="sample" rows="2" style="width:100%;font-family:monospace;" readonly></textarea>
                                 </div>
                             </div>
                         </div>
@@ -260,13 +271,6 @@
                                             <label for="iterations">Monte Carlo Iterations:</label>
                                             <input type="number" step="1" min="10" name="iterations" id="iterations"
                                                 value="{{ iterations_val }}">
-                                        </div>
-
-                                        <div class="form-row">
-                                            <label for="steps">Number of steps in Monte Carlo Plot:
-                                            </label>
-                                            <input type="number" step="1" min="1" name="steps" id="steps"
-                                                value="{{ steps_val }}">
                                         </div>
 
                                         <div class="form-row">
@@ -335,6 +339,70 @@
 
     </main>
     <script>
+                // Distribution selection logic
+                document.getElementById('dist-type').addEventListener('change', function() {
+                    const dist = this.value;
+                    document.getElementById('uniform-params').style.display = dist === 'uniform' ? '' : 'none';
+                    document.getElementById('binomial-params').style.display = dist === 'binomial' ? '' : 'none';
+                    document.getElementById('beta-params').style.display = dist === 'beta' ? '' : 'none';
+                });
+
+                document.getElementById('sample-btn').addEventListener('click', async function() {
+                    const distType = document.getElementById('dist-type').value;
+                    const sampleSizesRawText = document.getElementById('sample-size').value || '';
+                    const sampleSizeList = sampleSizesRawText.split(',').map(s=>s.trim()).filter(s=>s);
+                    const numExperiments = Number(document.getElementById('num-samples').value || 1);
+                    const sampleArea = document.getElementById('sample');
+                    sampleArea.value = '';
+
+                    if (sampleSizeList.length === 0) {
+                        alert('Please enter at least one sample size.');
+                        return;
+                    }
+
+                    // Validate beta distribution parameters
+                    if (distType === 'beta') {
+                        const betaAlpha = parseFloat(document.getElementById('beta-alpha').value);
+                        const betaBeta = parseFloat(document.getElementById('beta-beta').value);
+                        if (isNaN(betaAlpha) || isNaN(betaBeta) || betaAlpha <= 0 || betaBeta <= 0) {
+                            alert("Error: Beta distribution parameters (alpha and beta) must be positive numbers greater than 0.");
+                            return;
+                        }
+                    }
+
+                    // For each sample size, fetch `numExperiments` experiments and append to display
+                    let globalIdx = 1;
+                    const parts = [];
+                    for (const s of sampleSizeList) {
+                        let url = `/sample_dist?dist=${encodeURIComponent(distType)}&sample_size=${encodeURIComponent(s)}&num_experiments=${encodeURIComponent(numExperiments)}`;
+                        if (distType === 'uniform') {
+                            url += '&a=' + document.getElementById('uniform-a').value + '&b=' + document.getElementById('uniform-b').value;
+                        } else if (distType === 'binomial') {
+                            url += '&n=' + document.getElementById('binomial-n').value + '&p=' + document.getElementById('binomial-p').value;
+                        } else if (distType === 'beta') {
+                            url += '&alpha=' + document.getElementById('beta-alpha').value + '&beta=' + document.getElementById('beta-beta').value;
+                        }
+                        
+                        try {
+                            const r = await fetch(url);
+                            const data = await r.json();
+                            if (data.values) {
+                                parts.push(`Size ${s} - Exp 1: ${data.values.join(', ')}`);
+                                globalIdx += 1;
+                            } else if (data.experiments) {
+                                data.experiments.forEach((exp, idx) => {
+                                    parts.push(`Size ${s} - Exp ${idx+1}: ${exp.join(', ')}`);
+                                    globalIdx += 1;
+                                });
+                            } else {
+                                parts.push(`Size ${s}: sampling error`);
+                            }
+                        } catch (e) {
+                            parts.push(`Size ${s}: sampling error (${e.message})`);
+                        }
+                    }
+                    sampleArea.value = parts.join('\n');
+                });
         const form = document.getElementById("bounds-form");
         
         const statusEls = {
@@ -395,31 +463,48 @@
                     legend: {
                         labels: {
                             filter: (item) => {
-                            // item.text is the label shown in the legend
                             return item.text !== '' && item.text != null;
                             }
+                        },
+                        // Click handler for the std part of the legend entries
+                        onClick: (e, legendItem, legend) => {
+                            const datasetIndex = legendItem.datasetIndex;
+                            const dataset = legend.chart.data.datasets[datasetIndex];
+                            if (legendItem.text && legendItem.text.includes('(±std)')) {
+                                const isHidden = dataset.hidden;
+                                dataset.hidden = !isHidden;
+                                if (datasetIndex + 1 < legend.chart.data.datasets.length) {
+                                    legend.chart.data.datasets[datasetIndex + 1].hidden = !isHidden;
+                                }
+                            } else {
+                                dataset.hidden = !dataset.hidden;
+                            }
+                            legend.chart.update();
                         }
                     },
                     tooltip: { enabled: true }
                 },
                 scales: {
                     x: {
-                        type: "logarithmic", title: { display: true, text: "Monte Carlo Iterations" },
+                        type: "linear",
+                        title: { display: true, text: "Sample Size" },
+                        min: 1,
+                        max: 10,
                         ticks: {
-                            callback: function (value) {
-                                const exp = Math.log10(value);
-                                if (Number.isInteger(exp)) return "10^" + exp;
-                                return null;
+                            stepSize: 1,
+                            callback: function(value) {
+                                return Math.round(value);
                             }
                         }
                     },
-                    y: { title: { display: true, text: "Bound" } },
+                    y: { 
+                        title: { display: true, text: "Bound" },
+                        beginAtZero: false
+                    },
                 }
             }
         });
 
-        // Remember how many base datasets the chart starts with so we can
-        // remove any datasets added by previous runs when resetting.
         const BASE_DATASET_COUNT = chart.data.datasets.length;
 
         const streams = {};
@@ -451,7 +536,9 @@
                 chart.data.datasets.splice(BASE_DATASET_COUNT);
             }
             // Clear data for remaining base datasets
-            for (const ds of chart.data.datasets) ds.data = [];
+            for (const ds of chart.data.datasets) {
+                ds.data = [];
+            }
             chart.update();
         }
 
@@ -467,8 +554,6 @@
         }
 
         function addSimpleResult(boundType, text, isError=false) {
-            // text is a string (e.g. numeric value formatted). Collect results
-            // and render comma-separated so the results box stays compact.
             const formatted = isError ? `${boundType} Error: ${text}` : `${boundType}: ${text}`;
             simpleResults.push(formatted);
             document.getElementById("status-simple").innerHTML = simpleResults.join(", ");
@@ -489,8 +574,7 @@
                 paramSelections[key].style.display = selectedBounds.includes(key) ? "block" : "none";
             }
 
-            // Show the correct wrapper
-            document.getElementById("monte-carlo-graph").style.display = selectedBounds.includes("gaffke") ? "block" : "none";
+            document.getElementById("monte-carlo-graph").style.display = "block";
             document.getElementById("simple-display").style.display = selectedBounds.some(b => b !== "gaffke") ? "block" : "none";
             
             const hoeffdingSelected = selectedBounds.includes("hoeffding");
@@ -532,37 +616,90 @@
             activeStreams = 0;
             streamActive = {};
 
-            const sample = document.getElementById("sample").value.trim();
             const confidence = document.getElementById("confidence").value.trim();
             const iterations = document.getElementById("iterations").value.trim();
             const side = document.querySelector('input[name="side"]:checked')?.value || "lower";
-            const steps = document.getElementById("steps").value.trim();
-            const iterations_per_step = document.getElementById("iterations_per_step").value.trim();
             const min_max = document.getElementById("min_max").value.trim();
 
-            const maxIter = parseInt(iterations) || 1000;
-            chart.options.scales.x.max = maxIter;
+            const sampleSizesRawText = document.getElementById("sample-size").value.trim();
+            const sampleSizes = sampleSizesRawText ? sampleSizesRawText.split(",").map(s => Number(s.trim())).filter(n => !isNaN(n) && n>0) : [];
+            const num_repeats = Number(document.getElementById("num-samples").value || 1);
+            const distType = document.getElementById('dist-type').value;
+
+            if (sampleSizes.length === 0) {
+                alert("Please provide one or more sample sizes (comma-separated).");
+                runBtn.disabled = false;
+                return;
+            }
+
+            if (selectedBounds.includes("student_t")) {
+                const minSize = Math.min(...sampleSizes);
+                if (minSize < 2) {
+                    alert("Error: student_t bound requires all sample sizes to be at least 2. You provided: " + sampleSizesRawText);
+                    runBtn.disabled = false;
+                    return;
+                }
+            }
+
+            if (distType === 'beta') {
+                const betaAlpha = parseFloat(document.getElementById('beta-alpha').value);
+                const betaBeta = parseFloat(document.getElementById('beta-beta').value);
+                if (isNaN(betaAlpha) || isNaN(betaBeta) || betaAlpha <= 0 || betaBeta <= 0) {
+                    alert("Error: Beta distribution parameters (alpha and beta) must be positive numbers greater than 0.");
+                    runBtn.disabled = false;
+                    return;
+                }
+            }
+
+            const minSize = Math.min(...sampleSizes);
+            const maxSize = Math.max(...sampleSizes);
+            chart.options.scales.x.min = minSize;
+            chart.options.scales.x.max = maxSize;
+            chart.options.scales.x.ticks = {
+                stepSize: undefined,
+                autoSkip: false,
+                callback: function(value) {
+                    if (sampleSizes.includes(value)) {
+                        return Math.round(value);
+                    }
+                    return null;
+                }
+            };
             chart.update();
 
+            const qsCommon = {
+                sample_sizes: sampleSizes.join(","),
+                num_repeats: String(num_repeats),
+                dist: distType,
+                confidence,
+                iterations,
+                min_max,
+                side
+            };
+
             let results = [];
-            
+
             selectedBounds.forEach(boundType => {
-                const qs = new URLSearchParams({
-                    sample,
-                    confidence,
-                    iterations,
-                    steps,
-                    iterations_per_step,
-                    min_max,
-                    side
-                });
+                const qs = new URLSearchParams(qsCommon);
                 if (boundType === "hoeffding") {
                     const min_hoeffding = document.getElementById("min_hoeffding").value.trim();
                     const max_hoeffding = document.getElementById("max_hoeffding").value.trim();
                     qs.set("min_hoeffding", min_hoeffding);
                     qs.set("max_hoeffding", max_hoeffding);
                 }
-                const url = `/boundswithsample/${boundType === "gaffke" ? "stream" : "simple"}?${qs.toString()}&bound=${boundType}`;
+                // include distribution-specific params
+                if (distType === 'uniform') {
+                    qs.set('a', document.getElementById('uniform-a').value);
+                    qs.set('b', document.getElementById('uniform-b').value);
+                } else if (distType === 'binomial') {
+                    qs.set('n', document.getElementById('binomial-n').value);
+                    qs.set('p', document.getElementById('binomial-p').value);
+                } else if (distType === 'beta') {
+                    qs.set('alpha', document.getElementById('beta-alpha').value);
+                    qs.set('beta', document.getElementById('beta-beta').value);
+                }
+
+                const url = `/samplefromdist/stream?${qs.toString()}&bound=${boundType}`;
 
                 const BOUND_COLORS = {
                     gaffke:    "#7C3AED", // purple
@@ -573,170 +710,145 @@
 
                 const baseColor = BOUND_COLORS[boundType] || "#444444";
 
-                // For closed-form bounds (student_t, anderson, etc.) we only add
-                // a single 'mean' dataset. For Gaffke (Monte Carlo) we add three
-                // datasets (mean, +std, -std) because it streams updates with
-                // mean and std values.
                 let meanIndex, upperIndex, lowerIndex;
-                if (boundType === "gaffke") {
-                    meanIndex = chart.data.datasets.push({
-                        label: `${boundType} (mean)`,
-                        data: [],
-                        tension: 0.2,
-                        borderColor: baseColor,
-                        backgroundColor: baseColor + "33",
-                        pointRadius: 1.5,
-                        borderWidth: 2,
-                    }) - 1;
-                    upperIndex = chart.data.datasets.push({
-                        label: `${boundType} (±std)`,
-                        data: [],
-                        tension: 0.2,
-                        borderColor: baseColor,
-                        borderDash: [4, 2],
-                        pointRadius: 0,
-                        borderWidth: 1,
-                    }) - 1;
-                    lowerIndex = chart.data.datasets.push({
-                        label: '', // same label for legend grouping
-                        data: [],
-                        tension: 0.2,
-                        borderColor: baseColor,
-                        borderDash: [4, 2],
-                        pointRadius: 0,
-                        borderWidth: 1,
+                meanIndex = chart.data.datasets.push({
+                    label: `${boundType}`,
+                    data: [],
+                    tension: 0.2,
+                    borderColor: baseColor,
+                    backgroundColor: baseColor + "33",
+                    pointRadius: 1.5,
+                    borderWidth: 2,
+                }) - 1;
+                upperIndex = chart.data.datasets.push({
+                    label: `${boundType} (±std)`,
+                    data: [],
+                    tension: 0.2,
+                    borderColor: baseColor,
+                    borderDash: [4, 2],
+                    pointRadius: 0,
+                    borderWidth: 1,
+                    hidden: true,
+                }) - 1;
+                lowerIndex = chart.data.datasets.push({
+                    label: '',
+                    data: [],
+                    tension: 0.2,
+                    borderColor: baseColor,
+                    borderDash: [4, 2],
+                    pointRadius: 0,
+                    borderWidth: 1,
+                    hidden: true,
 
-                        fill: {
-                            target: upperIndex,
-                            above: baseColor + "22", 
-                            below: baseColor + "22", 
-                        }
-                    }) - 1;
-                } else {
-                    // Closed-form - only show a single marker/line in the legend
-                    meanIndex = chart.data.datasets.push({
-                        label: `${boundType}`,
-                        data: [],
-                        tension: 0.2,
-                        borderColor: baseColor,
-                        backgroundColor: baseColor + "33",
-                        pointRadius: 2,
-                        borderWidth: 2,
-                    }) - 1;
-                    upperIndex = null;
-                    lowerIndex = null;
-                }
+                    fill: {
+                        target: upperIndex,
+                        above: baseColor + "22", 
+                        below: baseColor + "22", 
+                    }
+                }) - 1;
 
-                if (boundType === "gaffke") {
-                    streams[boundType] = new EventSource(url);
-                    streamActive[boundType] = true;
-                    activeStreams++;
+                streams[boundType] = new EventSource(url);
+                streamActive[boundType] = true;
+                activeStreams++;
 
-                    streams[boundType].onmessage = (evt) => {
-                        if (!evt.data) return;
-                        let msg;
-                        try {
-                            msg = JSON.parse(evt.data);
-                        } catch (e) {
-                            console.error("Malformed SSE data:", evt.data);
-                            return; // skip this event
-                        }
+                streams[boundType].onmessage = (evt) => {
+                    if (!evt.data) return;
+                    let msg;
+                    try {
+                        msg = JSON.parse(evt.data);
+                    } catch (e) {
+                        console.error("Malformed SSE data:", evt.data);
+                        return; 
+                    }
 
-                        if (msg.type === "error") {
-                            getStatusEl(boundType).textContent = `${boundType} Error: ${msg.message}`;
-                            setProgress(0);
-                            closeStream(boundType);
-                            runBtn.disabled= false;
-                            return;
-                        }
+                    if (msg.type === "error") {
+                        getStatusEl(boundType).textContent = `${boundType} Error: ${msg.message}`;
+                        setProgress(0);
+                        closeStream(boundType);
+                        runBtn.disabled= false;
+                        return;
+                    }
 
-                        if (msg.type === "start") {
-                            totalBatches = Number(msg.points) || 0;
-                            boundProgress[boundType] = { completed: 0, total: totalBatches };
-                            getStatusEl(boundType).textContent = `${boundType} running ${totalBatches} batches...`;
-                            return;
-                        }
-
-                        if (msg.type === "update") {
-                            const { B, mean, std } = msg;
-                            chart.data.datasets[meanIndex].data.push({ x: B, y: mean });
-                            chart.data.datasets[upperIndex].data.push({ x: B, y: mean + std });
-                            chart.data.datasets[lowerIndex].data.push({ x: B, y: mean - std });
+                    if (msg.type === "start") {
+                        totalBatches = Number(msg.points) || 0;
+                        boundProgress[boundType] = { completed: 0, total: totalBatches };
+                        getStatusEl(boundType).textContent = `${boundType} running ${totalBatches} sizes...`;
+                        
+                        if (boundType === selectedBounds[0] && msg.true_mean !== null && msg.true_mean !== undefined) {
+                            const minSize = Math.min(...sampleSizes);
+                            const maxSize = Math.max(...sampleSizes);
+                            chart.data.datasets.push({
+                                label: 'True Mean',
+                                data: [
+                                    { x: minSize, y: msg.true_mean },
+                                    { x: maxSize, y: msg.true_mean }
+                                ],
+                                tension: 0,
+                                borderColor: "#10B981",
+                                borderDash: [2, 2],
+                                pointRadius: 0,
+                                borderWidth: 2,
+                                fill: false,
+                                spanGaps: true
+                            });
                             chart.update("none");
+                        }
+                        return;
+                    }
 
-                            // Stream progress to status box
-                            completedBatches += 1;
-                            const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
-                            setProgress(pct);
-                            getStatusEl(boundType).innerHTML = `
-                                <strong>Progress:</strong> Iterations=${B} &nbsp; mean=${mean.toFixed(4)} &nbsp; std=${std.toFixed(4)}
-                            `;
+                    if (msg.type === "update") {
+                        const { sample_size, mean, std, experiment_num } = msg;
+                        const xVal = sample_size !== undefined ? Number(sample_size) : experiment_num;
+                        
+                        if (mean !== null && mean !== undefined && std !== null && std !== undefined) {
+                            chart.data.datasets[meanIndex].data.push({ x: xVal, y: mean });
+                            chart.data.datasets[upperIndex].data.push({ x: xVal, y: mean + std });
+                            chart.data.datasets[lowerIndex].data.push({ x: xVal, y: mean - std });
+                            chart.update("none");
                         }
 
-                        if (msg.type === "end") {
-                            // Show final value in status box
-                            getStatusEl(boundType).innerHTML = `
-                                <strong>Final:</strong> mean=${msg.mean !== undefined ? msg.mean.toFixed(4) : 'N/A'} &nbsp; std=${msg.std !== undefined ? msg.std.toFixed(4) : 'N/A'}
-                            `;
-                            setProgress(100);
-                            // closeStream will decrement activeStreams if needed
-                            closeStream(boundType);
-                            // mark this bound's task as done (will re-enable button when
-                            // all pendingTasks and activeStreams reach zero)
-                            markTaskDone(boundType);
-                        }
-                    };
+                        completedBatches += 1;
+                        const pct = totalBatches > 0 ? (completedBatches / totalBatches) * 100 : 0;
+                        setProgress(pct);
+                        getStatusEl(boundType).innerHTML = `
+                            <strong>Progress:</strong> Size ${xVal} &nbsp; avg bound=${mean !== null ? mean.toFixed(4) : 'N/A'} &nbsp; std=${std !== undefined ? std.toFixed(4) : 'N/A'}
+                        `;
+                    }
 
-                    streams[boundType].onerror = (ev) => {
-                        // If the EventSource has closed normally, don't treat it as an error
-                        // that should alarm the user. Otherwise show an error message.
-                        try {
-                            const state = streams[boundType] && streams[boundType].readyState;
-                            if (state === EventSource.CLOSED) {
-                                getStatusEl(boundType).innerHTML += `<br><strong>${boundType}</strong> stream closed.`;
-                            } else {
-                                getStatusEl(boundType).innerHTML += `<br><strong>${boundType} stream error.</strong>`;
-                            }
-                        } catch (e) {
-                            // Fallback: show a generic error
+                    if (msg.type === "end") {
+                        // Show final gaffke value in status box
+                        if (boundType === "gaffke") {
+                            getStatusEl(boundType).innerHTML = `
+                                <strong>Gaffke Bound Final:</strong> mean=${msg.mean !== undefined ? msg.mean.toFixed(4) : 'N/A'} &nbsp; std=${msg.std !== undefined ? msg.std.toFixed(4) : 'N/A'}
+                            `;
+                        } else {
+                            // For non-gaffke bounds, add result to simple results box
+                            const resultText = `mean=${msg.mean !== undefined ? msg.mean.toFixed(4) : 'N/A'} std=${msg.std !== undefined ? msg.std.toFixed(4) : 'N/A'}`;
+                            addSimpleResult(boundType, resultText);
+                        }
+                        setProgress(100);
+                        // closeStream will decrement activeStreams if needed
+                        closeStream(boundType);
+                        // mark this bound's task as done (will re-enable button when
+                        // all pendingTasks and activeStreams reach zero)
+                        markTaskDone(boundType);
+                    }
+                };
+
+                streams[boundType].onerror = (ev) => {
+                    try {
+                        const state = streams[boundType] && streams[boundType].readyState;
+                        if (state === EventSource.CLOSED) {
+                            getStatusEl(boundType).innerHTML += `<br><strong>${boundType}</strong> stream closed.`;
+                        } else {
                             getStatusEl(boundType).innerHTML += `<br><strong>${boundType} stream error.</strong>`;
                         }
-                        // Ensure the stream is closed and activeStreams is decremented
-                        closeStream(boundType);
-                        // This stream's work is considered done for pendingTasks
-                        markTaskDone(boundType);
-                    };
-                } else {
-                    // Simple (non-streaming) bound
-                    fetch(url)
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.error) {
-                                addSimpleResult(boundType, data.error, true);
-                            } else {
-                                // Plot closed-form bounds as a horizontal line across the
-                                // Monte Carlo x-range so users can compare them to the
-                                // streamed Gaffke curve. Determine x-range from existing
-                                // data if available, otherwise from the iterations input.
-                                
-
-                                const maxX = parseInt(iterations) || iterations;
-                                const minX = 1
-                                // Create two points so Chart.js connects them as a horizontal line
-                                chart.data.datasets[meanIndex].data.push({ x: minX, y: data.value });
-                                chart.data.datasets[meanIndex].data.push({ x: maxX, y: data.value });
-                                chart.update();
-                                addSimpleResult(boundType, data.value.toFixed(4));
-                            }
-                            setProgress(100);
-                            // Mark this closed-form bound as finished
-                            markTaskDone(boundType);
-                        })
-                        .catch(err => {
-                            addSimpleResult(boundType, String(err), true);
-                            markTaskDone(boundType);
-                        });
-                }
+                    } catch (e) {
+                        getStatusEl(boundType).innerHTML += `<br><strong>${boundType} stream error.</strong>`;
+                    }
+                    closeStream(boundType);
+                    markTaskDone(boundType);
+                };
             });
             
         });
